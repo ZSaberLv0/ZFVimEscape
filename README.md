@@ -18,7 +18,7 @@ modified and enhanced from [tpope's vim-unimpaired](https://github.com/tpope/vim
 
 ```
 vmap your_keymap <Plug>ZFVimEscape_xml_encode
-vmap your_keymap <Plug>ZFVimEscape_xml_encode
+vmap your_keymap <Plug>ZFVimEscape_xml_decode
 ```
 
 plain text:
@@ -34,7 +34,7 @@ escaped text:
 
 ```
 vmap your_keymap <Plug>ZFVimEscape_unicode_encode
-vmap your_keymap <Plug>ZFVimEscape_unicode_encode
+vmap your_keymap <Plug>ZFVimEscape_unicode_decode
 ```
 
 plain text:
@@ -50,7 +50,7 @@ escaped text:
 
 ```
 vmap your_keymap <Plug>ZFVimEscape_utf8_encode
-vmap your_keymap <Plug>ZFVimEscape_utf8_encode
+vmap your_keymap <Plug>ZFVimEscape_utf8_decode
 ```
 
 plain text:
@@ -66,7 +66,7 @@ escaped text:
 
 ```
 vmap your_keymap <Plug>ZFVimEscape_url_encode
-vmap your_keymap <Plug>ZFVimEscape_url_encode
+vmap your_keymap <Plug>ZFVimEscape_url_decode
 ```
 
 plain text:
@@ -82,7 +82,7 @@ http%3A%2F%2Fwww%2F%3C%3E%3F%21
 
 ```
 vmap your_keymap <Plug>ZFVimEscape_cstring_encode
-vmap your_keymap <Plug>ZFVimEscape_cstring_encode
+vmap your_keymap <Plug>ZFVimEscape_cstring_decode
 ```
 
 plain text: (```____``` stands for tab)
