@@ -21,13 +21,8 @@ vmap your_keymap <Plug>ZFVimEscape_xml_encode
 vmap your_keymap <Plug>ZFVimEscape_xml_decode
 ```
 
-plain text:
 ```
-<abc>
-```
-escaped text:
-```
-&lt;abc&gt;
+<abc>    <=>    &lt;abc&gt;
 ```
 
 ## escape ANSI encoded Unicode
@@ -37,13 +32,8 @@ vmap your_keymap <Plug>ZFVimEscape_unicode_encode
 vmap your_keymap <Plug>ZFVimEscape_unicode_decode
 ```
 
-plain text:
 ```
-ab
-```
-escaped text:
-```
-\u0061\u0062
+a的b    <=>    \u0061\u8476\u0062
 ```
 
 ## escape binary encoded UTF-8
@@ -53,13 +43,8 @@ vmap your_keymap <Plug>ZFVimEscape_utf8_encode
 vmap your_keymap <Plug>ZFVimEscape_utf8_decode
 ```
 
-plain text:
 ```
-ab
-```
-escaped text:
-```
-6162
+a的b    <=>    61E79A8462
 ```
 
 ## escape URL
@@ -69,13 +54,8 @@ vmap your_keymap <Plug>ZFVimEscape_url_encode
 vmap your_keymap <Plug>ZFVimEscape_url_decode
 ```
 
-plain text:
 ```
-http://www/<>?!
-```
-escaped text:
-```
-http%3A%2F%2Fwww%2F%3C%3E%3F%21
+http://a的b    <=>    http%3A%2F%2Fa%E7%9A%84b
 ```
 
 ## escape C string
@@ -85,12 +65,7 @@ vmap your_keymap <Plug>ZFVimEscape_cstring_encode
 vmap your_keymap <Plug>ZFVimEscape_cstring_decode
 ```
 
-plain text: (```____``` stands for tab)
 ```
-\a____b
-```
-escaped text:
-```
-\\a\tb
+\a  b    <=>    \\a\tb
 ```
 
