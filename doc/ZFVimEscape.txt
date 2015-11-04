@@ -1,12 +1,75 @@
-ZFVimEscape
-
-vim script to escape special chars
+*ZFVimEscape.txt* vim script to escape special chars
 
 Author: ZSaberLv0 <http://zsaber.com/>
+        modified and enhanced from tpope's vim-unimpaired:
+          https://github.com/tpope/vim-unimpaired
 
-modified and enhanced from tpope's vim-unimpaired:
-  https://github.com/tpope/vim-unimpaired
 
-for more info, please refer to README in github:
-  https://github.com/ZSaberLv0/ZFVimEscape.vim/blob/master/README.md
+how to use                                      *ZFVimEscape*
+
+1. have your own key mapping in your vimrc (accorrding the functions below)
+2. select something that you want to encode or decode
+3. press the mapped key to encode or decode the selected text
+
+
+functions                                       *ZFVimEscape_functions*
+
+
+escape xml/html                                 *ZFVimEscape_xml*
+
+vmap your_keymap <Plug>ZFVimEscape_xml_encode
+vmap your_keymap <Plug>ZFVimEscape_xml_decode
+
+plain text:
+    <abc>
+
+escaped text:
+    &lt;abc&gt;
+
+
+escape ANSI encoded Unicode                     *ZFVimEscape_unicode*
+
+vmap your_keymap <Plug>ZFVimEscape_unicode_encode
+vmap your_keymap <Plug>ZFVimEscape_unicode_decode
+
+plain text:
+    ab
+
+escaped text:
+    \u0061\u0062
+
+
+escape binary encoded UTF-8                     *ZFVimEscape_utf8*
+
+vmap your_keymap <Plug>ZFVimEscape_utf8_encode
+vmap your_keymap <Plug>ZFVimEscape_utf8_decode
+
+plain text:
+    ab
+
+escaped text:
+    6162
+
+escape URL                                      *ZFVimEscape_url*
+
+vmap your_keymap <Plug>ZFVimEscape_url_encode
+vmap your_keymap <Plug>ZFVimEscape_url_decode
+
+plain text:
+    http://www/<>?!
+
+escaped text:
+    http%3A%2F%2Fwww%2F%3C%3E%3F%21
+
+
+escape C string                                 *ZFVimEscape_cstring*
+
+vmap your_keymap <Plug>ZFVimEscape_cstring_encode
+vmap your_keymap <Plug>ZFVimEscape_cstring_decode
+
+plain text: (____ stands for tab)
+    \a____b
+
+escaped text:
+    \\a\tb
 
