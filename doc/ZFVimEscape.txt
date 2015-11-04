@@ -1,0 +1,12 @@
+ZFVimEscape
+
+vim script to escape special chars
+
+Author: ZSaberLv0 <http://zsaber.com/>
+
+modified and enhanced from tpope's vim-unimpaired:
+  https://github.com/tpope/vim-unimpaired
+
+for more info, please refer to README in github:
+  https://github.com/ZSaberLv0/ZFVimEscape.vim/blob/master/README.md
+
