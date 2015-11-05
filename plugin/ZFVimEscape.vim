@@ -76,7 +76,7 @@ let g:ZFVimEscape_html_entities = {
 function! s:Transform(algorithm,type)
     let l:sel_save = &selection
     let l:cb_save = &clipboard
-    set selection=inclusive clipboard-=unnamed clipboard-=unnamedplus
+    set selection=exclusive clipboard-=unnamed clipboard-=unnamedplus
     let l:reg_save = @@
     if a:type =~ '^\d\+$'
         silent exe 'norm! ^v'.a:type.'$hy'
