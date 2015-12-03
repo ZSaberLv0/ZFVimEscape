@@ -69,3 +69,20 @@ vmap your_keymap <Plug>ZFVimEscape_cstring_decode
 \a  b    <=>    \\a\tb
 ```
 
+## base64
+
+```
+vmap your_keymap <Plug>ZFVimEscape_base64_encode
+vmap your_keymap <Plug>ZFVimEscape_base64_decode
+```
+
+```
+abcd    <=>    YWJjZA==
+```
+
+you may change the default base64 table by:
+
+```
+let g:ZFVimEscape_base64_table="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+```
+

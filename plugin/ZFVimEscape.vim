@@ -268,3 +268,38 @@ endfunction
 call s:ZFVimEscapeMapTransform('cstring_encode')
 call s:ZFVimEscapeMapTransform('cstring_decode')
 
+" ================================================================================
+" base64 encode and decode
+let g:ZFVimEscape_base64_table_default="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+if !exists("g:ZFVimEscape_base64_table")
+    let g:ZFVimEscape_base64_table="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+endif
+function! s:base64_encode(str)
+python << python_base64
+import string
+import base64
+import vim
+str = vim.eval("a:str")
+tableDefault = vim.eval("g:ZFVimEscape_base64_table_default")
+table = vim.eval("g:ZFVimEscape_base64_table")
+result = base64.b64encode(str).translate(string.maketrans(tableDefault, table))
+vim.command("let l:result='%s'"% result)
+python_base64
+    return l:result
+endfunction
+function! s:base64_decode(str)
+python << python_base64
+import string
+import base64
+import vim
+str = vim.eval("a:str")
+tableDefault = vim.eval("g:ZFVimEscape_base64_table_default")
+table = vim.eval("g:ZFVimEscape_base64_table")
+result = base64.b64decode(str.translate(string.maketrans(table, tableDefault)))
+vim.command("let l:result='%s'"% result)
+python_base64
+    return l:result
+endfunction
+call s:ZFVimEscapeMapTransform('base64_encode')
+call s:ZFVimEscapeMapTransform('base64_decode')
+
