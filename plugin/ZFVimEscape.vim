@@ -352,6 +352,9 @@ function! ZF_VimEscape()
         let f.="base64_encode"
     elseif cmd == char2nr("l")
         let f.="base64_decode"
+    else
+        echo "invalid choice"
+        return
     endif
 
     normal! gv
