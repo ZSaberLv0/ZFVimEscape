@@ -14,6 +14,14 @@ modified and enhanced from [tpope's vim-unimpaired](https://github.com/tpope/vim
 
 # functions
 
+## util method
+
+```
+vnoremap your_keymap <esc>:call ZF_VimEscape()<cr>
+```
+
+popup a menu to choose encode/decode function
+
 ## escape xml/html
 
 ```

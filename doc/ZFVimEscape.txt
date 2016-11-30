@@ -15,6 +15,13 @@ how to use                                      *ZFVimEscape*
 functions                                       *ZFVimEscape_functions*
 
 
+util method                                     *ZF_VimEscape*
+
+vnoremap your_keymap <esc>:call ZF_VimEscape()<cr>
+
+    popup a menu to choose encode/decode function
+
+
 escape xml/html                                 *ZFVimEscape_xml*
 
 vmap your_keymap <Plug>ZFVimEscape_xml_encode
