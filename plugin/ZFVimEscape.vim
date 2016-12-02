@@ -307,7 +307,7 @@ call s:ZFVimEscapeMapTransform('base64_decode')
 " util function, usage
 " vnoremap your_key <esc>:call ZF_VimEscape()<cr>
 function! ZF_VimEscape()
-    echo "function choose:"
+    echo "function:"
     echo "  (a) xml encode"
     echo "  (b) xml decode"
     echo "  (c) unicode encode"
