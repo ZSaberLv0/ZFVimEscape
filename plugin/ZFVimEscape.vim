@@ -307,57 +307,28 @@ call s:ZFVimEscapeMapTransform('base64_decode')
 " util function, usage
 " vnoremap your_key <esc>:call ZF_VimEscape()<cr>
 function! ZF_VimEscape()
-    echo "function:"
-    echo "  (a) xml encode"
-    echo "  (b) xml decode"
-    echo "  (c) unicode encode"
-    echo "  (d) unicode decode"
-    echo "  (e) utf8 encode"
-    echo "  (f) utf8 decode"
-    echo "  (g) url encode"
-    echo "  (h) url decode"
-    echo "  (i) C string encode"
-    echo "  (j) C string decode"
-    echo "  (k) base64 encode"
-    echo "  (l) base64 decode"
-    echo "choose: "
-    let cmd=getchar()
+    let funcs = [
+                \     'xml_encode',
+                \     'xml_decode',
+                \     'unicode_encode',
+                \     'unicode_decode',
+                \     'utf8_encode',
+                \     'utf8_decode',
+                \     'url_encode',
+                \     'url_decode',
+                \     'cstring_encode',
+                \     'cstring_decode',
+                \     'base64_encode',
+                \     'base64_decode',
+                \ ]
+    for i in range(len(funcs))
+        call ZF_VimCmdMenuAdd(1, '', funcs[i], '', 'ZF_VimEscapeCallback', funcs[i])
+    endfor
 
-    redraw!
-
-    let f="\<Plug>ZFVimEscape_"
-
-    if 1==0
-    elseif cmd == char2nr("a")
-        let f.="xml_encode"
-    elseif cmd == char2nr("b")
-        let f.="xml_decode"
-    elseif cmd == char2nr("c")
-        let f.="unicode_encode"
-    elseif cmd == char2nr("d")
-        let f.="unicode_decode"
-    elseif cmd == char2nr("e")
-        let f.="utf8_encode"
-    elseif cmd == char2nr("f")
-        let f.="utf8_decode"
-    elseif cmd == char2nr("g")
-        let f.="url_encode"
-    elseif cmd == char2nr("h")
-        let f.="url_decode"
-    elseif cmd == char2nr("i")
-        let f.="cstring_encode"
-    elseif cmd == char2nr("j")
-        let f.="cstring_decode"
-    elseif cmd == char2nr("k")
-        let f.="base64_encode"
-    elseif cmd == char2nr("l")
-        let f.="base64_decode"
-    else
-        echo "invalid choice"
-        return
-    endif
-
+    call ZF_VimCmdMenuShow('escape method:')
+endfunction
+function! ZF_VimEscapeCallback(f)
     normal! gv
-    execute "normal " . f
+    execute "normal \<Plug>ZFVimEscape_" . a:f
 endfunction
 
