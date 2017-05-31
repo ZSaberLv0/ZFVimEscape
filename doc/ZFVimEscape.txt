@@ -73,3 +73,7 @@ you may change the default base64 table by:
 
     let g:ZFVimEscape_base64_table="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
+or change the base64 pad by:
+
+    let g:ZFVimEscape_base64_pad="="
+
