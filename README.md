@@ -7,6 +7,13 @@ modified and enhanced from [tpope's vim-unimpaired](https://github.com/tpope/vim
 
 # how to use
 
+1. install by [vim-plug](https://github.com/junegunn/vim-plug) or any other plugin manager:
+
+    ```
+    Plug 'ZSaberLv0/ZFVimCmdMenu' " only required if you want the util method ZF_VimEscape()
+    Plug 'ZSaberLv0/ZFVimEscape'
+    ```
+
 1. have your own key mapping in your vimrc (accorrding the functions below)
 1. select something that you want to encode or decode
 1. press the mapped key to encode or decode the selected text
