@@ -148,6 +148,29 @@ call s:ZFVimEscapeMapTransform('xml_encode')
 call s:ZFVimEscapeMapTransform('xml_decode')
 
 " ================================================================================
+" json encode and decode
+function! s:json_encode(str)
+    let l:str = a:str
+    let l:str = substitute(l:str,'\\','\\\\','g')
+    let l:str = substitute(l:str,'"','\\"','g')
+    let l:str = substitute(l:str,"\t",'\\t','g')
+    let l:str = substitute(l:str,"\r",'\\r','g')
+    let l:str = substitute(l:str,"\n",'\\n','g')
+    return l:str
+endfunction
+function! s:json_decode(str)
+    let l:str = a:str
+    let l:str = substitute(l:str,'\\\\','\\','g')
+    let l:str = substitute(l:str,'\\"','"','g')
+    let l:str = substitute(l:str,'\\t',"\t",'g')
+    let l:str = substitute(l:str,'\\r',"\r",'g')
+    let l:str = substitute(l:str,'\\n',"\n",'g')
+    return l:str
+endfunction
+call s:ZFVimEscapeMapTransform('json_encode')
+call s:ZFVimEscapeMapTransform('json_decode')
+
+" ================================================================================
 " unicode encode and decode
 " convert between "\u0061\u0062" and "ab"
 function! s:unicode_encode(str)
@@ -317,6 +340,8 @@ function! ZF_VimEscape()
     let funcs = [
                 \     'xml_encode',
                 \     'xml_decode',
+                \     'json_encode',
+                \     'json_decode',
                 \     'unicode_encode',
                 \     'unicode_decode',
                 \     'utf8_encode',

@@ -40,6 +40,17 @@ vmap your_keymap <Plug>ZFVimEscape_xml_decode
 <abc>    <=>    &lt;abc&gt;
 ```
 
+## escape json
+
+```
+vmap your_keymap <Plug>ZFVimEscape_json_encode
+vmap your_keymap <Plug>ZFVimEscape_json_decode
+```
+
+```
+a"  b\c <=>    a\"\tb\\c
+```
+
 ## escape ANSI encoded Unicode
 
 ```

@@ -7,6 +7,11 @@ Author: ZSaberLv0 <http://zsaber.com/>
 
 how to use                                      *ZFVimEscape*
 
+1. install by [vim-plug](https://github.com/junegunn/vim-plug) or any other plugin manager:
+
+    Plug 'ZSaberLv0/ZFVimCmdMenu' " only required if you want the util method ZF_VimEscape()
+    Plug 'ZSaberLv0/ZFVimEscape'
+
 1. have your own key mapping in your vimrc (accorrding the functions below)
 2. select something that you want to encode or decode
 3. press the mapped key to encode or decode the selected text
@@ -28,6 +33,14 @@ vmap your_keymap <Plug>ZFVimEscape_xml_encode
 vmap your_keymap <Plug>ZFVimEscape_xml_decode
 
     <abc>    <=>    &lt;abc&gt;
+
+
+escape json                                     *ZFVimEscape_json*
+
+vmap your_keymap <Plug>ZFVimEscape_json_encode
+vmap your_keymap <Plug>ZFVimEscape_json_decode
+
+    a"  b\c  <=>    a\"\tb\\c
 
 
 escape ANSI encoded Unicode                     *ZFVimEscape_unicode*
