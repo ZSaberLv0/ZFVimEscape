@@ -114,7 +114,7 @@ endfunction
 
 function! s:ZFVimEscapeMapTransform(algorithm)
     exe 'nnoremap <silent> <Plug>ZFVimEscape_'    .a:algorithm.' :<C-U>call <SID>TransformSetup("'.a:algorithm.'")<CR>g@'
-    exe 'vnoremap <silent> <Plug>ZFVimEscape_'    .a:algorithm.' :<C-U>call <SID>Transform("'.a:algorithm.'",visualmode())<CR>'
+    exe 'xnoremap <silent> <Plug>ZFVimEscape_'    .a:algorithm.' :<C-U>call <SID>Transform("'.a:algorithm.'",visualmode())<CR>'
     exe 'nnoremap <silent> <Plug>ZFVimEscape_line_'.a:algorithm.' :<C-U>call <SID>Transform("'.a:algorithm.'",v:count1)<CR>'
 endfunction
 
@@ -335,7 +335,7 @@ call s:ZFVimEscapeMapTransform('base64_decode')
 
 " ================================================================================
 " util function, usage
-" vnoremap your_key <esc>:call ZF_VimEscape()<cr>
+" xnoremap your_key <esc>:call ZF_VimEscape()<cr>
 function! ZF_VimEscape()
     let funcs = [
                 \     'xml_encode',
