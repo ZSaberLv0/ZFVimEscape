@@ -336,7 +336,11 @@ call s:ZFVimEscapeMapTransform('base64_decode')
 " ================================================================================
 " util function, usage
 " xnoremap your_key <esc>:call ZF_VimEscape()<cr>
-function! ZF_VimEscape()
+function! ZF_VimEscape(...)
+    let mode='n'
+    if a:0 > 0
+        let mode=a:1
+    endif
     let funcs = [
                 \     'xml_encode',
                 \     'xml_decode',
@@ -354,13 +358,17 @@ function! ZF_VimEscape()
                 \     'base64_decode',
                 \ ]
     for i in range(len(funcs))
-        call ZF_VimCmdMenuAdd(1, '', funcs[i], '', 'ZF_VimEscapeCallback', funcs[i])
+        call ZF_VimCmdMenuAdd({'showKeyHint':1, 'text':funcs[i], 'callback':'ZF_VimEscapeCallback', 'callbackParam0':funcs[i], 'callbackParam1':mode})
     endfor
 
-    call ZF_VimCmdMenuShow('escape method:')
+    call ZF_VimCmdMenuShow({'headerText':'escape method:'})
 endfunction
-function! ZF_VimEscapeCallback(f)
-    normal! gv
+function! ZF_VimEscapeCallback(f, mode)
+    if a:mode=='n'
+        normal! ggvG$
+    else
+        normal! gv
+    endif
     execute "normal \<Plug>ZFVimEscape_" . a:f
 endfunction
 
