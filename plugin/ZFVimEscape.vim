@@ -8,8 +8,6 @@ if &cp || v:version < 700
 endif
 let g:loaded_ZFVimEscape = 1
 
-let s:python_begin = has('python3') ? "python3 << python_end" : "python << python_end"
-
 let g:ZFVimEscape_html_entities = {
             \ 'nbsp':     160, 'iexcl':    161, 'cent':     162, 'pound':    163,
             \ 'curren':   164, 'yen':      165, 'brvbar':   166, 'sect':     167,
@@ -303,16 +301,29 @@ if !exists("g:ZFVimEscape_base64_pad")
     let g:ZFVimEscape_base64_pad="="
 endif
 function! s:base64_encode(str)
-execute s:python_begin
+    if has('python3')
+python3 << python3_base64
 import string
 import base64
 import vim
 str = vim.eval("a:str")
 tableDefault = vim.eval("s:ZFVimEscape_base64_table_default")
 table = vim.eval("g:ZFVimEscape_base64_table . g:ZFVimEscape_base64_pad")
-result = base64.b64encode(str.encode()).decode().translate(str.maketrans(tableDefault, table))
+result = base64.b64encode(str.encode()).translate(bytes.maketrans(tableDefault.encode(), table.encode())).decode()
 vim.command("let l:result='%s'"% result)
-python_end
+python3_base64
+    else
+python << python2_base64
+import string
+import base64
+import vim
+str = vim.eval("a:str")
+tableDefault = vim.eval("s:ZFVimEscape_base64_table_default")
+table = vim.eval("g:ZFVimEscape_base64_table . g:ZFVimEscape_base64_pad")
+result = base64.b64encode(str).translate(string.maketrans(tableDefault, table))
+vim.command("let l:result='%s'"% result)
+python2_base64
+    endif
     return l:result
 endfunction
 function! s:base64_decode(str)
@@ -320,16 +331,29 @@ function! s:base64_decode(str)
     while len(str) % 4 != 0
         let str .= '='
     endwhile
-execute s:python_begin
+    if has('python3')
+python3 << python3_base64
 import string
 import base64
 import vim
 str = vim.eval("str")
 tableDefault = vim.eval("s:ZFVimEscape_base64_table_default")
 table = vim.eval("g:ZFVimEscape_base64_table . g:ZFVimEscape_base64_pad")
-result = base64.b64decode(str.translate(str.maketrans(table, tableDefault)).encode()).decode()
+result = base64.b64decode(str.encode().translate(bytes.maketrans(table.encode(), tableDefault.encode()))).decode()
 vim.command("let l:result='%s'"% result)
-python_end
+python3_base64
+    else
+python << python2_base64
+import string
+import base64
+import vim
+str = vim.eval("str")
+tableDefault = vim.eval("s:ZFVimEscape_base64_table_default")
+table = vim.eval("g:ZFVimEscape_base64_table . g:ZFVimEscape_base64_pad")
+result = base64.b64decode(str.translate(string.maketrans(table, tableDefault)))
+vim.command("let l:result='%s'"% result)
+python2_base64
+    endif
     return l:result
 endfunction
 call s:ZFVimEscapeMapTransform('base64_encode')
