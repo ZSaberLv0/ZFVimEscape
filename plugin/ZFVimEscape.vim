@@ -3,10 +3,12 @@
 "               modified from tpope's vim-unimpaired
 "               (https://github.com/tpope/vim-unimpaired)
 " Version:      1.0
-if exists("g:loaded_ZFVimEscape") || &cp || v:version < 700
+if &cp || v:version < 700
     finish
 endif
 let g:loaded_ZFVimEscape = 1
+
+let s:python_begin = has('python3') ? "python3 << python_end" : "python << python_end"
 
 let g:ZFVimEscape_html_entities = {
             \ 'nbsp':     160, 'iexcl':    161, 'cent':     162, 'pound':    163,
@@ -301,16 +303,16 @@ if !exists("g:ZFVimEscape_base64_pad")
     let g:ZFVimEscape_base64_pad="="
 endif
 function! s:base64_encode(str)
-python << python_base64
+execute s:python_begin
 import string
 import base64
 import vim
 str = vim.eval("a:str")
 tableDefault = vim.eval("s:ZFVimEscape_base64_table_default")
 table = vim.eval("g:ZFVimEscape_base64_table . g:ZFVimEscape_base64_pad")
-result = base64.b64encode(str).translate(string.maketrans(tableDefault, table))
+result = base64.b64encode(str.encode()).translate(bytes.maketrans(tableDefault.encode(), table.encode())).decode()
 vim.command("let l:result='%s'"% result)
-python_base64
+python_end
     return l:result
 endfunction
 function! s:base64_decode(str)
@@ -318,16 +320,16 @@ function! s:base64_decode(str)
     while len(str) % 4 != 0
         let str .= '='
     endwhile
-python << python_base64
+execute s:python_begin
 import string
 import base64
 import vim
 str = vim.eval("str")
 tableDefault = vim.eval("s:ZFVimEscape_base64_table_default")
 table = vim.eval("g:ZFVimEscape_base64_table . g:ZFVimEscape_base64_pad")
-result = base64.b64decode(str.translate(string.maketrans(table, tableDefault)))
+result = base64.b64decode(str.encode().translate(bytes.maketrans(table.encode(), tableDefault.encode()))).decode()
 vim.command("let l:result='%s'"% result)
-python_base64
+python_end
     return l:result
 endfunction
 call s:ZFVimEscapeMapTransform('base64_encode')
