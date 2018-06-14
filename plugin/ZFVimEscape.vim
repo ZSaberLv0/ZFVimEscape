@@ -310,7 +310,7 @@ import vim
 str = vim.eval("a:str")
 tableDefault = vim.eval("s:ZFVimEscape_base64_table_default")
 table = vim.eval("g:ZFVimEscape_base64_table . g:ZFVimEscape_base64_pad")
-result = base64.b64encode(str.encode()).translate(bytes.maketrans(tableDefault.encode(), table.encode())).decode()
+result = base64.b64encode(str.encode()).decode().translate(str.maketrans(tableDefault, table))
 vim.command("let l:result='%s'"% result)
 python_end
     return l:result
@@ -327,7 +327,7 @@ import vim
 str = vim.eval("str")
 tableDefault = vim.eval("s:ZFVimEscape_base64_table_default")
 table = vim.eval("g:ZFVimEscape_base64_table . g:ZFVimEscape_base64_pad")
-result = base64.b64decode(str.encode().translate(bytes.maketrans(table.encode(), tableDefault.encode()))).decode()
+result = base64.b64decode(str.translate(str.maketrans(table, tableDefault)).encode()).decode()
 vim.command("let l:result='%s'"% result)
 python_end
     return l:result
