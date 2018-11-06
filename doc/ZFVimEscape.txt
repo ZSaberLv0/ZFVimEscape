@@ -23,6 +23,7 @@ functions                                       *ZFVimEscape_functions*
 util method                                     *ZF_VimEscape*
 
 xnoremap your_keymap <esc>:call ZF_VimEscape()<cr>
+nnoremap your_keymap :call ZF_VimEscape()<cr>
 
     popup a menu to choose encode/decode function
 

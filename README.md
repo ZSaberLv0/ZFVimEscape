@@ -24,7 +24,8 @@ modified and enhanced from [tpope's vim-unimpaired](https://github.com/tpope/vim
 ## util method
 
 ```
-vnoremap your_keymap <esc>:call ZF_VimEscape()<cr>
+xnoremap your_keymap <esc>:call ZF_VimEscape()<cr>
+nnoremap your_keymap :call ZF_VimEscape()<cr>
 ```
 
 popup a menu to choose encode/decode function
@@ -32,8 +33,8 @@ popup a menu to choose encode/decode function
 ## escape xml/html
 
 ```
-vmap your_keymap <Plug>ZFVimEscape_xml_encode
-vmap your_keymap <Plug>ZFVimEscape_xml_decode
+xmap your_keymap <Plug>ZFVimEscape_xml_encode
+xmap your_keymap <Plug>ZFVimEscape_xml_decode
 ```
 
 ```
@@ -43,8 +44,8 @@ vmap your_keymap <Plug>ZFVimEscape_xml_decode
 ## escape json
 
 ```
-vmap your_keymap <Plug>ZFVimEscape_json_encode
-vmap your_keymap <Plug>ZFVimEscape_json_decode
+xmap your_keymap <Plug>ZFVimEscape_json_encode
+xmap your_keymap <Plug>ZFVimEscape_json_decode
 ```
 
 ```
@@ -54,8 +55,8 @@ a"  b\c <=>    a\"\tb\\c
 ## escape ANSI encoded Unicode
 
 ```
-vmap your_keymap <Plug>ZFVimEscape_unicode_encode
-vmap your_keymap <Plug>ZFVimEscape_unicode_decode
+xmap your_keymap <Plug>ZFVimEscape_unicode_encode
+xmap your_keymap <Plug>ZFVimEscape_unicode_decode
 ```
 
 ```
@@ -65,8 +66,8 @@ a的b    <=>    \u0061\u8476\u0062
 ## escape binary encoded UTF-8
 
 ```
-vmap your_keymap <Plug>ZFVimEscape_utf8_encode
-vmap your_keymap <Plug>ZFVimEscape_utf8_decode
+xmap your_keymap <Plug>ZFVimEscape_utf8_encode
+xmap your_keymap <Plug>ZFVimEscape_utf8_decode
 ```
 
 ```
@@ -76,8 +77,8 @@ a的b    <=>    61E79A8462
 ## escape URL
 
 ```
-vmap your_keymap <Plug>ZFVimEscape_url_encode
-vmap your_keymap <Plug>ZFVimEscape_url_decode
+xmap your_keymap <Plug>ZFVimEscape_url_encode
+xmap your_keymap <Plug>ZFVimEscape_url_decode
 ```
 
 ```
@@ -87,8 +88,8 @@ http://a的b    <=>    http%3A%2F%2Fa%E7%9A%84b
 ## escape C string
 
 ```
-vmap your_keymap <Plug>ZFVimEscape_cstring_encode
-vmap your_keymap <Plug>ZFVimEscape_cstring_decode
+xmap your_keymap <Plug>ZFVimEscape_cstring_encode
+xmap your_keymap <Plug>ZFVimEscape_cstring_decode
 ```
 
 ```
@@ -98,8 +99,8 @@ vmap your_keymap <Plug>ZFVimEscape_cstring_decode
 ## base64
 
 ```
-vmap your_keymap <Plug>ZFVimEscape_base64_encode
-vmap your_keymap <Plug>ZFVimEscape_base64_decode
+xmap your_keymap <Plug>ZFVimEscape_base64_encode
+xmap your_keymap <Plug>ZFVimEscape_base64_decode
 ```
 
 ```
