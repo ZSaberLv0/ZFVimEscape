@@ -360,7 +360,7 @@ call s:ZFVimEscapeMapTransform('base64_encode')
 call s:ZFVimEscapeMapTransform('base64_decode')
 
 " ================================================================================
-" C string encode and decode
+" md5
 function! s:md5_encode(str)
     try
         let ret = MD5String(a:str)
@@ -374,6 +374,34 @@ function! s:md5_encode(str)
     endtry
 endfunction
 call s:ZFVimEscapeMapTransform('md5_encode')
+
+" ================================================================================
+" qrcode
+if !exists('g:ZFVimEscape_qrcode_bg')
+    let g:ZFVimEscape_qrcode_bg='██'
+endif
+if !exists('g:ZFVimEscape_qrcode_fg')
+    let g:ZFVimEscape_qrcode_fg='  '
+endif
+function! s:qrcode_encode(str)
+python << ZFQrcode
+import pyqrcode
+import vim
+str = vim.eval("a:str")
+data = pyqrcode.create(str)
+result = data.text()
+vim.command("let l:result='%s'"% result)
+ZFQrcode
+    let l:result=substitute(l:result, '0', 'zfbgzf', 'g')
+    let l:result=substitute(l:result, '1', 'zffgzf', 'g')
+    let l:result=substitute(l:result, 'zfbgzf', g:ZFVimEscape_qrcode_bg, 'g')
+    let l:result=substitute(l:result, 'zffgzf', g:ZFVimEscape_qrcode_fg, 'g')
+    if !exists('g:ZFVimEscape_qrcode_noboarderfix') || !g:ZFVimEscape_qrcode_noboarderfix
+        let l:result=substitute(l:result, "\n", "\|\n", 'g')
+    endif
+    return l:result
+endfunction
+call s:ZFVimEscapeMapTransform('qrcode_encode')
 
 " ================================================================================
 " util function, usage
@@ -399,6 +427,7 @@ function! ZF_VimEscape(...)
                 \     'base64_encode',
                 \     'base64_decode',
                 \     'md5_encode',
+                \     'qrcode_encode',
                 \ ]
     for i in range(len(funcs))
         call ZF_VimCmdMenuAdd({'showKeyHint':1, 'text':funcs[i], 'callback':'ZF_VimEscapeCallback', 'callbackParam0':funcs[i], 'callbackParam1':mode})

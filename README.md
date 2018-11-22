@@ -135,3 +135,16 @@ you may change the result to lower case by:
 let g:ZFVimEscape_md5_lowercase=1
 ```
 
+## qrcode
+
+```
+xmap your_keymap <Plug>ZFVimEscape_qrcode_encode
+```
+
+you may change the output token by
+
+```
+let g:ZFVimEscape_qrcode_bg='██'
+let g:ZFVimEscape_qrcode_fg='  '
+```
+
