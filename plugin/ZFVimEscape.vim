@@ -360,6 +360,22 @@ call s:ZFVimEscapeMapTransform('base64_encode')
 call s:ZFVimEscapeMapTransform('base64_decode')
 
 " ================================================================================
+" C string encode and decode
+function! s:md5_encode(str)
+    try
+        let ret = MD5String(a:str)
+        if !exists('g:ZFVimEscape_md5_lowercase') || !g:ZFVimEscape_md5_lowercase
+            let ret = toupper(ret)
+        endif
+        return ret
+    catch
+        echomsg "Warning: md5_encode require retorillo/md5.vim"
+        return a:str
+    endtry
+endfunction
+call s:ZFVimEscapeMapTransform('md5_encode')
+
+" ================================================================================
 " util function, usage
 " xnoremap your_key <esc>:call ZF_VimEscape()<cr>
 function! ZF_VimEscape(...)
@@ -382,6 +398,7 @@ function! ZF_VimEscape(...)
                 \     'cstring_decode',
                 \     'base64_encode',
                 \     'base64_decode',
+                \     'md5_encode',
                 \ ]
     for i in range(len(funcs))
         call ZF_VimCmdMenuAdd({'showKeyHint':1, 'text':funcs[i], 'callback':'ZF_VimEscapeCallback', 'callbackParam0':funcs[i], 'callbackParam1':mode})

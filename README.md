@@ -119,3 +119,19 @@ or change the base64 pad by:
 let g:ZFVimEscape_base64_pad="="
 ```
 
+## md5
+
+```
+xmap your_keymap <Plug>ZFVimEscape_md5_encode
+```
+
+```
+abcd    <=>    E2FC714C4727EE9395F324CD2E7F331F
+```
+
+you may change the result to lower case by:
+
+```
+let g:ZFVimEscape_md5_lowercase=1
+```
+
