@@ -446,31 +446,57 @@ function! ZF_VimEscape(...)
     if a:0 > 0
         let mode=a:1
     endif
+
     let funcs = [
-                \     'xml_encode',
-                \     'xml_decode',
-                \     'json_encode',
-                \     'json_decode',
-                \     'unicode_encode',
-                \     'unicode_decode',
-                \     'utf8_encode',
-                \     'utf8_decode',
-                \     'url_encode',
-                \     'url_decode',
-                \     'cstring_encode',
-                \     'cstring_decode',
-                \     'base64_encode',
-                \     'base64_decode',
-                \     'timestamp_encode',
-                \     'timestamp_decode',
-                \     'md5_encode',
-                \     'qrcode_encode',
+                \   ['+ XML', 'xml'],
+                \   ['+ JSON', 'json'],
+                \   ['+ Unicode', 'unicode'],
+                \   ['+ UTF-8', 'utf8'],
+                \   ['+ URL', 'url'],
+                \   ['+ C string', 'cstring'],
+                \   ['+ Base64', 'base64'],
+                \   ['+ Timestamp', 'timestamp'],
                 \ ]
-    for i in range(len(funcs))
-        call ZF_VimCmdMenuAdd({'showKeyHint':1, 'text':funcs[i], 'callback':'ZF_VimEscapeCallback', 'callbackParam0':funcs[i], 'callbackParam1':mode})
+    for item in funcs
+        call ZF_VimCmdMenuAdd({
+                    \   'showKeyHint' : 1,
+                    \   'text' : item[0],
+                    \   'command' : 'call ZF_VimEscapeMenuCallback("' . item[0] . '", "' . item[1] .  '", "' . mode . '")',
+                    \ })
     endfor
 
-    call ZF_VimCmdMenuShow({'headerText':'escape method:'})
+    let funcs = [
+                \   ['  MD5 encode', 'md5_encode'],
+                \   ['  QRCode encode', 'qrcode_encode'],
+                \ ]
+    for item in funcs
+        call ZF_VimCmdMenuAdd({
+                    \   'showKeyHint' : 1,
+                    \   'text' : item[0],
+                    \   'callback' : 'ZF_VimEscapeCallback',
+                    \   'callbackParam0' : item[1],
+                    \   'callbackParam1' : mode})
+    endfor
+
+    call ZF_VimCmdMenuShow({'headerText' : 'escape method:'})
+endfunction
+function! ZF_VimEscapeMenuCallback(name, func, mode)
+    call ZF_VimCmdMenuAdd({
+                \   'showKeyHint' : 1,
+                \   'text' : 'Encode',
+                \   'callback' : 'ZF_VimEscapeCallback',
+                \   'callbackParam0' : a:func . '_encode',
+                \   'callbackParam1' : a:mode,
+                \ })
+    call ZF_VimCmdMenuAdd({
+                \   'showKeyHint' : 1,
+                \   'text' : 'Decode',
+                \   'callback' : 'ZF_VimEscapeCallback',
+                \   'callbackParam0' : a:func . '_decode',
+                \   'callbackParam1' : a:mode,
+                \ })
+
+    call ZF_VimCmdMenuShow({'headerText' : a:name})
 endfunction
 function! ZF_VimEscapeCallback(f, mode)
     if a:mode=='n'
