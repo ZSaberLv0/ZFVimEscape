@@ -119,6 +119,19 @@ or change the base64 pad by:
 let g:ZFVimEscape_base64_pad="="
 ```
 
+## timestamp
+
+```
+xmap your_keymap <Plug>ZFVimEscape_timestamp_encode
+xmap your_keymap <Plug>ZFVimEscape_timestamp_decode
+```
+
+```
+1544607765    <=>    2018-12-12 17:42:45
+5C10D815      <=>    2018-12-12 17:42:45
+0x5C10D815    <=>    2018-12-12 17:42:45
+```
+
 ## md5
 
 ```

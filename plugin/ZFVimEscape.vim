@@ -360,6 +360,41 @@ call s:ZFVimEscapeMapTransform('base64_encode')
 call s:ZFVimEscapeMapTransform('base64_decode')
 
 " ================================================================================
+" timestamp, format: 2018-10-10 12:34:56
+function! s:timestamp_encode(str)
+    let str = substitute(a:str, '^[ \t\r\n]*\(.\{-}\)[ \t\r\n]*$', '\1', 'g')
+    let str = a:str
+    if has('python3')
+python3 << python3_timestamp
+import time
+import vim
+str = vim.eval("str")
+result = time.mktime(time.strptime(str, "%Y-%m-%d %H:%M:%S"))
+vim.command("let l:result='%d'"% result)
+python3_timestamp
+    else
+python << python2_timestamp
+import time
+import vim
+str = vim.eval("str")
+result = time.strptime(str, "%Y-%m-%d %H:%M:%S")
+vim.command("let l:result='%s'"% result)
+python2_timestamp
+    endif
+    return l:result
+endfunction
+function! s:timestamp_decode(str)
+    let str = substitute(a:str, '^[ \t\r\n]*\(.\{-}\)[ \t\r\n]*$', '\1', 'g')
+    if match(str, '^0[xX]') >= 0 || match(str, '[a-fA-F]') >= 0 || len(str) == 8
+        let str = substitute(str, '^0[xX]', '', '')
+        let str = str2nr(str, 16)
+    endif
+    return strftime('%Y-%m-%d %H:%M:%S', str)
+endfunction
+call s:ZFVimEscapeMapTransform('timestamp_encode')
+call s:ZFVimEscapeMapTransform('timestamp_decode')
+
+" ================================================================================
 " md5
 function! s:md5_encode(str)
     try
@@ -426,6 +461,8 @@ function! ZF_VimEscape(...)
                 \     'cstring_decode',
                 \     'base64_encode',
                 \     'base64_decode',
+                \     'timestamp_encode',
+                \     'timestamp_decode',
                 \     'md5_encode',
                 \     'qrcode_encode',
                 \ ]
