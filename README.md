@@ -30,7 +30,7 @@ nnoremap your_keymap :call ZF_VimEscape()<cr>
 
 popup a menu to choose encode/decode function
 
-## escape xml/html
+## xml/html
 
 ```
 xmap your_keymap <Plug>ZFVimEscape_xml_encode
@@ -41,7 +41,7 @@ xmap your_keymap <Plug>ZFVimEscape_xml_decode
 <abc>    <=>    &lt;abc&gt;
 ```
 
-## escape json
+## json
 
 ```
 xmap your_keymap <Plug>ZFVimEscape_json_encode
@@ -52,7 +52,7 @@ xmap your_keymap <Plug>ZFVimEscape_json_decode
 a"  b\c <=>    a\"\tb\\c
 ```
 
-## escape ANSI encoded Unicode
+## Unicode
 
 ```
 xmap your_keymap <Plug>ZFVimEscape_unicode_encode
@@ -63,7 +63,7 @@ xmap your_keymap <Plug>ZFVimEscape_unicode_decode
 a的b    <=>    \u0061\u8476\u0062
 ```
 
-## escape binary encoded UTF-8
+## UTF-8
 
 ```
 xmap your_keymap <Plug>ZFVimEscape_utf8_encode
@@ -74,7 +74,7 @@ xmap your_keymap <Plug>ZFVimEscape_utf8_decode
 a的b    <=>    61E79A8462
 ```
 
-## escape URL
+## URL
 
 ```
 xmap your_keymap <Plug>ZFVimEscape_url_encode
@@ -85,7 +85,7 @@ xmap your_keymap <Plug>ZFVimEscape_url_decode
 http://a的b    <=>    http%3A%2F%2Fa%E7%9A%84b
 ```
 
-## escape C string
+## C string
 
 ```
 xmap your_keymap <Plug>ZFVimEscape_cstring_encode
@@ -107,18 +107,6 @@ xmap your_keymap <Plug>ZFVimEscape_base64_decode
 abcd    <=>    YWJjZA==
 ```
 
-you may change the default base64 table by:
-
-```
-let g:ZFVimEscape_base64_table="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-```
-
-or change the base64 pad by:
-
-```
-let g:ZFVimEscape_base64_pad="="
-```
-
 ## timestamp
 
 ```
@@ -132,6 +120,16 @@ xmap your_keymap <Plug>ZFVimEscape_timestamp_decode
 0x5C10D815    <=>    2018-12-12 17:42:45
 ```
 
+## crc32
+
+```
+xmap your_keymap <Plug>ZFVimEscape_crc32_encode
+```
+
+```
+abcd    <=>    ED82CD11
+```
+
 ## md5
 
 ```
@@ -142,22 +140,9 @@ xmap your_keymap <Plug>ZFVimEscape_md5_encode
 abcd    <=>    E2FC714C4727EE9395F324CD2E7F331F
 ```
 
-you may change the result to lower case by:
-
-```
-let g:ZFVimEscape_md5_lowercase=1
-```
-
 ## qrcode
 
 ```
 xmap your_keymap <Plug>ZFVimEscape_qrcode_encode
-```
-
-you may change the output token by
-
-```
-let g:ZFVimEscape_qrcode_bg='██'
-let g:ZFVimEscape_qrcode_fg='  '
 ```
 

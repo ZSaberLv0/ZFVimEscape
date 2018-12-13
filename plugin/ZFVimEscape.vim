@@ -265,7 +265,7 @@ call s:ZFVimEscapeMapTransform('utf8_decode')
 " ================================================================================
 " url
 function! s:url_encode_char(str)
-    if !exists('g:ZFVimEscape_unicode_lowercase') || g:ZFVimEscape_unicode_lowercase != 1
+    if !exists('g:ZFVimEscape_url_lowercase') || g:ZFVimEscape_url_lowercase != 1
         let x = 'X'
     else
         let x = 'x'
