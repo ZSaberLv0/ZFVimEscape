@@ -127,7 +127,7 @@ function! s:ZFVimEscapeMapTransform(algorithm)
 endfunction
 
 " ================================================================================
-" xml encode and decode
+" xml
 function! s:xml_encode(str)
     let l:str = a:str
     let l:str = substitute(l:str,'&','\&amp;','g')
@@ -157,7 +157,7 @@ endfunction
 call s:ZFVimEscapeMapTransform('xml_decode')
 
 " ================================================================================
-" json encode and decode
+" json
 function! s:json_encode(str)
     let l:str = a:str
     let l:str = substitute(l:str,'\\','\\\\','g')
@@ -181,7 +181,7 @@ endfunction
 call s:ZFVimEscapeMapTransform('json_decode')
 
 " ================================================================================
-" unicode encode and decode
+" unicode
 " convert between "\u0061\u0062" and "ab"
 function! s:unicode_encode(str)
     let l:str = a:str
@@ -203,7 +203,7 @@ endfunction
 call s:ZFVimEscapeMapTransform('unicode_decode')
 
 " ================================================================================
-" UTF8 encode and decode
+" UTF8
 " convert between "6162" and "ab"
 function! s:utf8_encode_char(x, str, prefix)
     let l:n = char2nr(a:str)
@@ -263,7 +263,7 @@ endfunction
 call s:ZFVimEscapeMapTransform('utf8_decode')
 
 " ================================================================================
-" url encode and decode
+" url
 function! s:url_encode_char(str)
     if !exists('g:ZFVimEscape_unicode_lowercase') || g:ZFVimEscape_unicode_lowercase != 1
         let x = 'X'
@@ -303,7 +303,7 @@ endfunction
 call s:ZFVimEscapeMapTransform('url_decode')
 
 " ================================================================================
-" C string encode and decode
+" C string
 function! s:cstring_encode(str)
     let l:map = {"\n": 'n', "\r": 'r', "\t": 't', "\b": 'b', "\f": '\f', '"': '"', '\': '\'}
     return substitute(a:str,"[\001-\033\\\\\"]",'\="\\".get(map,submatch(0),printf("%03o",char2nr(submatch(0))))','g')
@@ -321,7 +321,7 @@ endfunction
 call s:ZFVimEscapeMapTransform('cstring_decode')
 
 " ================================================================================
-" base64 encode and decode
+" base64
 let s:ZFVimEscape_base64_table_default="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
 if !exists("g:ZFVimEscape_base64_table")
     let g:ZFVimEscape_base64_table="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
@@ -445,6 +445,41 @@ endfunction
 call s:ZFVimEscapeMapTransform('timestamp_decode')
 
 " ================================================================================
+" crc32
+function! s:crc32_encode(str)
+    if has('python3')
+
+python3 << crc32_encode_python3
+import binascii
+import vim
+str = vim.eval("a:str")
+result = binascii.crc32(str.encode())
+vim.command("let l:result='%s'"% result)
+crc32_encode_python3
+
+    elseif has('python')
+
+python << crc32_encode_python2
+import binascii
+import vim
+str = vim.eval("a:str")
+result = binascii.crc32(str)
+vim.command("let l:result='%s'"% result)
+crc32_encode_python2
+
+    else
+        echomsg "Warning: crc32_encode require python"
+        return a:str
+    endif
+    let l:result = printf('%08x', l:result)
+    if !exists('g:ZFVimEscape_crc32_lowercase') || g:ZFVimEscape_crc32_lowercase != 1
+        let l:result = toupper(l:result)
+    endif
+    return l:result
+endfunction
+call s:ZFVimEscapeMapTransform('crc32_encode')
+
+" ================================================================================
 " md5
 function! s:md5_encode(str)
     try
@@ -502,7 +537,7 @@ call s:ZFVimEscapeMapTransform('qrcode_encode')
 
 " ================================================================================
 " util function, usage
-" xnoremap your_key <esc>:call ZF_VimEscape()<cr>
+" xnoremap your_key <esc>:call ZF_VimEscape('v')<cr>
 function! ZF_VimEscape(...)
     let mode='n'
     if a:0 > 0
@@ -529,7 +564,8 @@ function! ZF_VimEscape(...)
     endfor
 
     let funcs = [
-                \   ['m', '  MD5 encode', 'md5_encode'],
+                \   ['3', '  CRC32 encode', 'crc32_encode'],
+                \   ['5', '  MD5 encode', 'md5_encode'],
                 \   ['r', '  QRCode encode', 'qrcode_encode'],
                 \ ]
     for item in funcs
