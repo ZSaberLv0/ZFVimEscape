@@ -10,8 +10,10 @@ let g:loaded_ZFVimEscape = 1
 
 if has('python3')
     let s:python_EOF='python3 << python_EOF'
-else
+elseif has('python')
     let s:python_EOF='python << python_EOF'
+else
+    let s:python_EOF=''
 endif
 
 let g:ZFVimEscape_html_entities = {
@@ -183,7 +185,12 @@ call s:ZFVimEscapeMapTransform('json_decode')
 " convert between "\u0061\u0062" and "ab"
 function! s:unicode_encode(str)
     let l:str = a:str
-    let l:str = substitute(l:str, '\(.\)', '\=printf("\\u%04x", char2nr(submatch(1)))', 'g')
+    if !exists('g:ZFVimEscape_unicode_lowercase') || g:ZFVimEscape_unicode_lowercase != 1
+        let x = 'X'
+    else
+        let x = 'x'
+    endif
+    let l:str = substitute(l:str, '\(.\)', '\=printf("\\u%04' . x . '", char2nr(submatch(1)))', 'g')
     return l:str
 endfunction
 call s:ZFVimEscapeMapTransform('unicode_encode')
@@ -198,25 +205,30 @@ call s:ZFVimEscapeMapTransform('unicode_decode')
 " ================================================================================
 " UTF8 encode and decode
 " convert between "6162" and "ab"
-function! s:utf8_encode_char(str, prefix)
+function! s:utf8_encode_char(x, str, prefix)
     let l:n = char2nr(a:str)
     if n <= 0x7F
-        return printf("%s%02X", a:prefix, n)
+        return printf('%s%02' . a:x, a:prefix, n)
     elseif n <= 0x07FF
         let l:c0 = or(and(n / 64, 0x1F), 0xC0)
         let l:c1 = or(and(n, 0x3F), 0x80)
-        return printf("%s%02X%s%02X", a:prefix, c0, a:prefix, c1)
+        return printf('%s%02' . a:x . '%s%02' . a:x, a:prefix, c0, a:prefix, c1)
     elseif n <= 0xFFFF
         let l:c0 = or(and(n / 4096, 0x0F), 0xE0)
         let l:c1 = or(and(n / 64, 0x3F), 0x80)
         let l:c2 = or(and(n, 0x3F), 0x80)
-        return printf("%s%02X%s%02X%s%02X", a:prefix, c0, a:prefix, c1, a:prefix, c2)
+        return printf('%s%02' . a:x . '%s%02' . a:x . '%s%02' . a:x, a:prefix, c0, a:prefix, c1, a:prefix, c2)
     endif
     return l:str
 endfunction
 function! s:utf8_encode(str)
     let l:str = a:str
-    let l:str = substitute(l:str, '\(.\)', '\=s:utf8_encode_char(submatch(1),"")', 'g')
+    if !exists('g:ZFVimEscape_utf8_lowercase') || g:ZFVimEscape_utf8_lowercase != 1
+        let x = 'X'
+    else
+        let x = 'x'
+    endif
+    let l:str = substitute(l:str, '\(.\)', '\=s:utf8_encode_char("' . x . '", submatch(1),"")', 'g')
     return l:str
 endfunction
 call s:ZFVimEscapeMapTransform('utf8_encode')
@@ -253,7 +265,12 @@ call s:ZFVimEscapeMapTransform('utf8_decode')
 " ================================================================================
 " url encode and decode
 function! s:url_encode_char(str)
-    return s:utf8_encode_char(a:str, '%')
+    if !exists('g:ZFVimEscape_unicode_lowercase') || g:ZFVimEscape_unicode_lowercase != 1
+        let x = 'X'
+    else
+        let x = 'x'
+    endif
+    return s:utf8_encode_char(x, a:str, '%')
 endfunction
 function! s:url_encode(str)
     let l:str = a:str
@@ -326,7 +343,7 @@ result = base64.b64encode(str.encode()).translate(bytes.maketrans(tableDefault.e
 vim.command("let l:result='%s'"% result)
 base64_encode_python3
 
-    else
+    elseif has('python')
 
 python << base64_encode_python2
 import string
@@ -339,6 +356,9 @@ result = base64.b64encode(str).translate(string.maketrans(tableDefault, table))
 vim.command("let l:result='%s'"% result)
 base64_encode_python2
 
+    else
+        echomsg "Warning: base64_encode require python"
+        return a:str
     endif
     return l:result
 endfunction
@@ -362,7 +382,7 @@ result = base64.b64decode(str.encode().translate(bytes.maketrans(table.encode(),
 vim.command("let l:result='%s'"% result)
 base64_decode_python3
 
-    else
+    elseif has('python')
 
 python << base64_decode_python2
 import string
@@ -375,6 +395,9 @@ result = base64.b64decode(str.translate(string.maketrans(table, tableDefault)))
 vim.command("let l:result='%s'"% result)
 base64_decode_python2
 
+    else
+        echomsg "Warning: base64_decode require python"
+        return a:str
     endif
     return l:result
 endfunction
@@ -382,18 +405,31 @@ call s:ZFVimEscapeMapTransform('base64_decode')
 
 " ================================================================================
 " timestamp, format: 2018-10-10 12:34:56
+if !exists('g:ZFVimEscape_timestamp_pattern')
+    let g:ZFVimEscape_timestamp_pattern='%Y-%m-%d %H:%M:%S'
+endif
 function! s:timestamp_encode(str)
     let str = substitute(a:str, '^[ \t\r\n]*\(.\{-}\)[ \t\r\n]*$', '\1', 'g')
     let str = a:str
+    if !empty(s:python_EOF)
+        try
 
 execute s:python_EOF
 import time
 import vim
 str = vim.eval("str")
-result = time.mktime(time.strptime(str, "%Y-%m-%d %H:%M:%S"))
+result = time.mktime(time.strptime(str, vim.eval("g:ZFVimEscape_timestamp_pattern")))
 vim.command("let l:result='%d'"% result)
 python_EOF
 
+        catch
+            echomsg 'Warning: ' . str . ' does not match pattern: ' . g:ZFVimEscape_timestamp_pattern
+            return a:str
+        endtry
+    else
+        echomsg "Warning: timestamp_encode require python"
+        return a:str
+    endif
     return l:result
 endfunction
 call s:ZFVimEscapeMapTransform('timestamp_encode')
@@ -404,7 +440,7 @@ function! s:timestamp_decode(str)
         let str = substitute(str, '^0[xX]', '', '')
         let str = str2nr(str, 16)
     endif
-    return strftime('%Y-%m-%d %H:%M:%S', str)
+    return strftime(g:ZFVimEscape_timestamp_pattern, str)
 endfunction
 call s:ZFVimEscapeMapTransform('timestamp_decode')
 
@@ -433,6 +469,8 @@ if !exists('g:ZFVimEscape_qrcode_fg')
     let g:ZFVimEscape_qrcode_fg='  '
 endif
 function! s:qrcode_encode(str)
+    if !empty(s:python_EOF)
+        try
 
 execute s:python_EOF
 import pyqrcode
@@ -443,6 +481,14 @@ result = data.text()
 vim.command("let l:result='%s'"% result)
 python_EOF
 
+        catch
+            echomsg "Warning: qrcode_encode require python pyqrcode"
+            return a:str
+        endtry
+    else
+        echomsg "Warning: qrcode_encode require python"
+        return a:str
+    endif
     let l:result=substitute(l:result, '0', 'zfbgzf', 'g')
     let l:result=substitute(l:result, '1', 'zffgzf', 'g')
     let l:result=substitute(l:result, 'zfbgzf', g:ZFVimEscape_qrcode_bg, 'g')
@@ -465,7 +511,7 @@ function! ZF_VimEscape(...)
 
     let funcs = [
                 \   ['x', '+ XML', 'xml'],
-                \   ['j', '+ JSON', 'json'],
+                \   ['s', '+ JSON', 'json'],
                 \   ['u', '+ Unicode', 'unicode'],
                 \   ['8', '+ UTF-8', 'utf8'],
                 \   ['l', '+ URL', 'url'],
