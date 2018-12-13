@@ -8,6 +8,12 @@ if &cp || v:version < 700
 endif
 let g:loaded_ZFVimEscape = 1
 
+if has('python3')
+    let s:python_EOF='python3 << python_EOF'
+else
+    let s:python_EOF='python << python_EOF'
+endif
+
 let g:ZFVimEscape_html_entities = {
             \ 'nbsp':     160, 'iexcl':    161, 'cent':     162, 'pound':    163,
             \ 'curren':   164, 'yen':      165, 'brvbar':   166, 'sect':     167,
@@ -128,6 +134,8 @@ function! s:xml_encode(str)
     let l:str = substitute(l:str,'"','\&quot;','g')
     return l:str
 endfunction
+call s:ZFVimEscapeMapTransform('xml_encode')
+
 function! s:xml_entity_decode(str)
     let l:str = a:str
     let l:str = substitute(l:str,'\c&#\%(0*38\|x0*26\);','&amp;','g')
@@ -144,7 +152,6 @@ function! s:xml_decode(str)
     let l:str = substitute(a:str,'<\%([[:alnum:]-]\+=\%("[^"]*"\|''[^'']*''\)\|.\)\{-\}>','','g')
     return s:xml_entity_decode(l:str)
 endfunction
-call s:ZFVimEscapeMapTransform('xml_encode')
 call s:ZFVimEscapeMapTransform('xml_decode')
 
 " ================================================================================
@@ -158,6 +165,8 @@ function! s:json_encode(str)
     let l:str = substitute(l:str,"\n",'\\n','g')
     return l:str
 endfunction
+call s:ZFVimEscapeMapTransform('json_encode')
+
 function! s:json_decode(str)
     let l:str = a:str
     let l:str = substitute(l:str,'\\\\','\\','g')
@@ -167,7 +176,6 @@ function! s:json_decode(str)
     let l:str = substitute(l:str,'\\n',"\n",'g')
     return l:str
 endfunction
-call s:ZFVimEscapeMapTransform('json_encode')
 call s:ZFVimEscapeMapTransform('json_decode')
 
 " ================================================================================
@@ -178,12 +186,13 @@ function! s:unicode_encode(str)
     let l:str = substitute(l:str, '\(.\)', '\=printf("\\u%04x", char2nr(submatch(1)))', 'g')
     return l:str
 endfunction
+call s:ZFVimEscapeMapTransform('unicode_encode')
+
 function! s:unicode_decode(str)
     let l:str = a:str
     let l:str = substitute(l:str, '\\u\(\x\x\x\x\)', '\=nr2char("0x" . submatch(1))', 'g')
     return l:str
 endfunction
-call s:ZFVimEscapeMapTransform('unicode_encode')
 call s:ZFVimEscapeMapTransform('unicode_decode')
 
 " ================================================================================
@@ -210,6 +219,8 @@ function! s:utf8_encode(str)
     let l:str = substitute(l:str, '\(.\)', '\=s:utf8_encode_char(submatch(1),"")', 'g')
     return l:str
 endfunction
+call s:ZFVimEscapeMapTransform('utf8_encode')
+
 function! s:utf8_decode_char_1(str)
     return nr2char("0x" . a:str)
 endfunction
@@ -237,7 +248,6 @@ function! s:utf8_decode(str)
     let l:str = substitute(l:str, '\([01234567]\x\)', '\=s:utf8_decode_char_1(submatch(1))', 'g')
     return l:str
 endfunction
-call s:ZFVimEscapeMapTransform('utf8_encode')
 call s:ZFVimEscapeMapTransform('utf8_decode')
 
 " ================================================================================
@@ -250,6 +260,8 @@ function! s:url_encode(str)
     let l:str = substitute(l:str, '\([^A-Za-z0-9_.~-]\)', '\=s:url_encode_char(submatch(1))', 'g')
     return l:str
 endfunction
+call s:ZFVimEscapeMapTransform('url_encode')
+
 function! s:url_decode_string(str)
     let l:str = substitute(a:str, '%', '', 'g')
     return s:utf8_decode(l:str)
@@ -271,7 +283,6 @@ function! s:url_decode(str)
     endwhile
     return l:ret
 endfunction
-call s:ZFVimEscapeMapTransform('url_encode')
 call s:ZFVimEscapeMapTransform('url_decode')
 
 " ================================================================================
@@ -280,6 +291,8 @@ function! s:cstring_encode(str)
     let l:map = {"\n": 'n', "\r": 'r', "\t": 't', "\b": 'b', "\f": '\f', '"': '"', '\': '\'}
     return substitute(a:str,"[\001-\033\\\\\"]",'\="\\".get(map,submatch(0),printf("%03o",char2nr(submatch(0))))','g')
 endfunction
+call s:ZFVimEscapeMapTransform('cstring_encode')
+
 function! s:cstring_decode(str)
     let l:map = {'n': "\n", 'r': "\r", 't': "\t", 'b': "\b", 'f': "\f", 'e': "\e", 'a': "\001", 'v': "\013", "\n": ''}
     let l:str = a:str
@@ -288,7 +301,6 @@ function! s:cstring_decode(str)
     endif
     return substitute(l:str,'\\\(\o\{1,3\}\|x\x\{1,2\}\|u\x\{1,4\}\|.\)','\=get(map,submatch(1),submatch(1) =~? "^[0-9xu]" ? nr2char("0".substitute(submatch(1),"^[Uu]","x","")) : submatch(1))','g')
 endfunction
-call s:ZFVimEscapeMapTransform('cstring_encode')
 call s:ZFVimEscapeMapTransform('cstring_decode')
 
 " ================================================================================
@@ -302,7 +314,8 @@ if !exists("g:ZFVimEscape_base64_pad")
 endif
 function! s:base64_encode(str)
     if has('python3')
-python3 << python3_base64
+
+python3 << base64_encode_python3
 import string
 import base64
 import vim
@@ -311,9 +324,11 @@ tableDefault = vim.eval("s:ZFVimEscape_base64_table_default")
 table = vim.eval("g:ZFVimEscape_base64_table . g:ZFVimEscape_base64_pad")
 result = base64.b64encode(str.encode()).translate(bytes.maketrans(tableDefault.encode(), table.encode())).decode()
 vim.command("let l:result='%s'"% result)
-python3_base64
+base64_encode_python3
+
     else
-python << python2_base64
+
+python << base64_encode_python2
 import string
 import base64
 import vim
@@ -322,17 +337,21 @@ tableDefault = vim.eval("s:ZFVimEscape_base64_table_default")
 table = vim.eval("g:ZFVimEscape_base64_table . g:ZFVimEscape_base64_pad")
 result = base64.b64encode(str).translate(string.maketrans(tableDefault, table))
 vim.command("let l:result='%s'"% result)
-python2_base64
+base64_encode_python2
+
     endif
     return l:result
 endfunction
+call s:ZFVimEscapeMapTransform('base64_encode')
+
 function! s:base64_decode(str)
     let str = a:str
     while len(str) % 4 != 0
         let str .= '='
     endwhile
     if has('python3')
-python3 << python3_base64
+
+python3 << base64_decode_python3
 import string
 import base64
 import vim
@@ -341,9 +360,11 @@ tableDefault = vim.eval("s:ZFVimEscape_base64_table_default")
 table = vim.eval("g:ZFVimEscape_base64_table . g:ZFVimEscape_base64_pad")
 result = base64.b64decode(str.encode().translate(bytes.maketrans(table.encode(), tableDefault.encode()))).decode()
 vim.command("let l:result='%s'"% result)
-python3_base64
+base64_decode_python3
+
     else
-python << python2_base64
+
+python << base64_decode_python2
 import string
 import base64
 import vim
@@ -352,11 +373,11 @@ tableDefault = vim.eval("s:ZFVimEscape_base64_table_default")
 table = vim.eval("g:ZFVimEscape_base64_table . g:ZFVimEscape_base64_pad")
 result = base64.b64decode(str.translate(string.maketrans(table, tableDefault)))
 vim.command("let l:result='%s'"% result)
-python2_base64
+base64_decode_python2
+
     endif
     return l:result
 endfunction
-call s:ZFVimEscapeMapTransform('base64_encode')
 call s:ZFVimEscapeMapTransform('base64_decode')
 
 " ================================================================================
@@ -364,25 +385,19 @@ call s:ZFVimEscapeMapTransform('base64_decode')
 function! s:timestamp_encode(str)
     let str = substitute(a:str, '^[ \t\r\n]*\(.\{-}\)[ \t\r\n]*$', '\1', 'g')
     let str = a:str
-    if has('python3')
-python3 << python3_timestamp
+
+execute s:python_EOF
 import time
 import vim
 str = vim.eval("str")
 result = time.mktime(time.strptime(str, "%Y-%m-%d %H:%M:%S"))
 vim.command("let l:result='%d'"% result)
-python3_timestamp
-    else
-python << python2_timestamp
-import time
-import vim
-str = vim.eval("str")
-result = time.strptime(str, "%Y-%m-%d %H:%M:%S")
-vim.command("let l:result='%s'"% result)
-python2_timestamp
-    endif
+python_EOF
+
     return l:result
 endfunction
+call s:ZFVimEscapeMapTransform('timestamp_encode')
+
 function! s:timestamp_decode(str)
     let str = substitute(a:str, '^[ \t\r\n]*\(.\{-}\)[ \t\r\n]*$', '\1', 'g')
     if match(str, '^0[xX]') >= 0 || match(str, '[a-fA-F]') >= 0 || len(str) == 8
@@ -391,7 +406,6 @@ function! s:timestamp_decode(str)
     endif
     return strftime('%Y-%m-%d %H:%M:%S', str)
 endfunction
-call s:ZFVimEscapeMapTransform('timestamp_encode')
 call s:ZFVimEscapeMapTransform('timestamp_decode')
 
 " ================================================================================
@@ -419,14 +433,16 @@ if !exists('g:ZFVimEscape_qrcode_fg')
     let g:ZFVimEscape_qrcode_fg='  '
 endif
 function! s:qrcode_encode(str)
-python << ZFQrcode
+
+execute s:python_EOF
 import pyqrcode
 import vim
 str = vim.eval("a:str")
 data = pyqrcode.create(str)
 result = data.text()
 vim.command("let l:result='%s'"% result)
-ZFQrcode
+python_EOF
+
     let l:result=substitute(l:result, '0', 'zfbgzf', 'g')
     let l:result=substitute(l:result, '1', 'zffgzf', 'g')
     let l:result=substitute(l:result, 'zfbgzf', g:ZFVimEscape_qrcode_bg, 'g')
@@ -448,49 +464,54 @@ function! ZF_VimEscape(...)
     endif
 
     let funcs = [
-                \   ['+ XML', 'xml'],
-                \   ['+ JSON', 'json'],
-                \   ['+ Unicode', 'unicode'],
-                \   ['+ UTF-8', 'utf8'],
-                \   ['+ URL', 'url'],
-                \   ['+ C string', 'cstring'],
-                \   ['+ Base64', 'base64'],
-                \   ['+ Timestamp', 'timestamp'],
+                \   ['x', '+ XML', 'xml'],
+                \   ['j', '+ JSON', 'json'],
+                \   ['u', '+ Unicode', 'unicode'],
+                \   ['8', '+ UTF-8', 'utf8'],
+                \   ['l', '+ URL', 'url'],
+                \   ['c', '+ C string', 'cstring'],
+                \   ['b', '+ Base64', 'base64'],
+                \   ['t', '+ Timestamp', 'timestamp'],
                 \ ]
     for item in funcs
         call ZF_VimCmdMenuAdd({
                     \   'showKeyHint' : 1,
-                    \   'text' : item[0],
-                    \   'command' : 'call ZF_VimEscapeMenuCallback("' . item[0] . '", "' . item[1] .  '", "' . mode . '")',
+                    \   'key' : item[0],
+                    \   'text' : item[1],
+                    \   'command' : 'call ZF_VimEscapeMenuCallback("' . item[1] . '", "' . item[2] .  '", "' . mode . '")',
                     \ })
     endfor
 
     let funcs = [
-                \   ['  MD5 encode', 'md5_encode'],
-                \   ['  QRCode encode', 'qrcode_encode'],
+                \   ['m', '  MD5 encode', 'md5_encode'],
+                \   ['r', '  QRCode encode', 'qrcode_encode'],
                 \ ]
     for item in funcs
         call ZF_VimCmdMenuAdd({
                     \   'showKeyHint' : 1,
-                    \   'text' : item[0],
+                    \   'key' : item[0],
+                    \   'text' : item[1],
                     \   'callback' : 'ZF_VimEscapeCallback',
-                    \   'callbackParam0' : item[1],
+                    \   'callbackParam0' : item[2],
                     \   'callbackParam1' : mode})
     endfor
 
     call ZF_VimCmdMenuShow({'headerText' : 'escape method:'})
 endfunction
+
 function! ZF_VimEscapeMenuCallback(name, func, mode)
     call ZF_VimCmdMenuAdd({
-                \   'showKeyHint' : 1,
-                \   'text' : 'Encode',
+                \   'showKeyHint' : 0,
+                \   'key' : 'e',
+                \   'text' : '(e)ncode',
                 \   'callback' : 'ZF_VimEscapeCallback',
                 \   'callbackParam0' : a:func . '_encode',
                 \   'callbackParam1' : a:mode,
                 \ })
     call ZF_VimCmdMenuAdd({
-                \   'showKeyHint' : 1,
-                \   'text' : 'Decode',
+                \   'showKeyHint' : 0,
+                \   'key' : 'd',
+                \   'text' : '(d)ecode',
                 \   'callback' : 'ZF_VimEscapeCallback',
                 \   'callbackParam0' : a:func . '_decode',
                 \   'callbackParam1' : a:mode,
@@ -498,6 +519,7 @@ function! ZF_VimEscapeMenuCallback(name, func, mode)
 
     call ZF_VimCmdMenuShow({'headerText' : a:name})
 endfunction
+
 function! ZF_VimEscapeCallback(f, mode)
     if a:mode=='n'
         normal! ggvG$
