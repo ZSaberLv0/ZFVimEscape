@@ -4,6 +4,8 @@ vim script to escape special chars
 
 modified and enhanced from [tpope's vim-unimpaired](https://github.com/tpope/vim-unimpaired)
 
+if you like my work, [check here](https://github.com/ZSaberLv0?utf8=%E2%9C%93&tab=repositories&q=ZFVim) for a list of my vim plugins
+
 
 # how to use
 
