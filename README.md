@@ -76,6 +76,15 @@ xmap your_keymap <Plug>ZFVimEscape_utf8_decode
 a的b    <=>    61E79A8462
 ```
 
+## byte
+
+similar to `UTF-8` above, but let you choose the encoding
+
+```
+xmap your_keymap <Plug>ZFVimEscape_byte_encode
+xmap your_keymap <Plug>ZFVimEscape_byte_decode
+```
+
 ## URL
 
 ```

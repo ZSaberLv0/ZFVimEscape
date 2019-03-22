@@ -263,6 +263,57 @@ endfunction
 call s:ZFVimEscapeMapTransform('utf8_decode')
 
 " ================================================================================
+" byte string
+" convert between "6162" and "ab" with specified encoding
+function! s:byte_encode(str)
+    let l:str = a:str
+    let l:encoding = input('[Python] input encoding: ', 'utf-8')
+    if !empty(s:python_EOF)
+
+execute s:python_EOF
+import string
+import vim
+str = vim.eval("str")
+encoding = vim.eval("encoding")
+result = str.encode(encoding)
+vim.command("let l:str='%s'"% result.hex())
+python_EOF
+
+    else
+        echomsg "Warning: byte_encode require python"
+        return a:str
+    endif
+    if !exists('g:ZFVimEscape_byte_lowercase') || g:ZFVimEscape_byte_lowercase != 1
+        let l:str = toupper(l:str)
+    endif
+    return l:str
+endfunction
+call s:ZFVimEscapeMapTransform('byte_encode')
+
+function! s:byte_decode(str)
+    let l:str = a:str
+    let l:encoding = input('[Python] input encoding: ', 'utf-8')
+    if !empty(s:python_EOF)
+
+execute s:python_EOF
+import string
+import array
+import vim
+str = vim.eval("str")
+encoding = vim.eval("encoding")
+result = bytearray.fromhex(str).decode(encoding)
+vim.command("let l:str='%s'"% result)
+python_EOF
+
+    else
+        echomsg "Warning: byte_decode require python"
+        return a:str
+    endif
+    return l:str
+endfunction
+call s:ZFVimEscapeMapTransform('byte_decode')
+
+" ================================================================================
 " url
 function! s:url_encode_char(str)
     if !exists('g:ZFVimEscape_url_lowercase') || g:ZFVimEscape_url_lowercase != 1
@@ -549,6 +600,7 @@ function! ZF_VimEscape(...)
                 \   ['s', '+ JSON', 'json'],
                 \   ['u', '+ Unicode', 'unicode'],
                 \   ['8', '+ UTF-8', 'utf8'],
+                \   ['y', '+ Byte', 'byte'],
                 \   ['l', '+ URL', 'url'],
                 \   ['c', '+ C string', 'cstring'],
                 \   ['b', '+ Base64', 'base64'],
