@@ -263,9 +263,9 @@ endfunction
 call s:ZFVimEscapeMapTransform('utf8_decode')
 
 " ================================================================================
-" byte string
+" binary string
 " convert between "6162" and "ab" with specified encoding
-function! s:byte_encode(str)
+function! s:binstr_encode(str)
     let l:str = a:str
     let l:encoding = input('[Python] input encoding: ', 'utf-8')
     if !empty(s:python_EOF)
@@ -280,17 +280,17 @@ vim.command("let l:str='%s'"% result.hex())
 python_EOF
 
     else
-        echomsg "Warning: byte_encode require python"
+        echomsg "Warning: binstr_encode require python"
         return a:str
     endif
-    if !exists('g:ZFVimEscape_byte_lowercase') || g:ZFVimEscape_byte_lowercase != 1
+    if !exists('g:ZFVimEscape_binstr_lowercase') || g:ZFVimEscape_binstr_lowercase != 1
         let l:str = toupper(l:str)
     endif
     return l:str
 endfunction
-call s:ZFVimEscapeMapTransform('byte_encode')
+call s:ZFVimEscapeMapTransform('binstr_encode')
 
-function! s:byte_decode(str)
+function! s:binstr_decode(str)
     let l:str = a:str
     let l:encoding = input('[Python] input encoding: ', 'utf-8')
     if !empty(s:python_EOF)
@@ -306,12 +306,12 @@ vim.command("let l:str='%s'"% result)
 python_EOF
 
     else
-        echomsg "Warning: byte_decode require python"
+        echomsg "Warning: binstr_decode require python"
         return a:str
     endif
     return l:str
 endfunction
-call s:ZFVimEscapeMapTransform('byte_decode')
+call s:ZFVimEscapeMapTransform('binstr_decode')
 
 " ================================================================================
 " url
@@ -600,7 +600,7 @@ function! ZF_VimEscape(...)
                 \   ['s', '+ JSON', 'json'],
                 \   ['u', '+ Unicode', 'unicode'],
                 \   ['8', '+ UTF-8', 'utf8'],
-                \   ['y', '+ Byte', 'byte'],
+                \   ['y', '+ Binary String', 'binstr'],
                 \   ['l', '+ URL', 'url'],
                 \   ['c', '+ C string', 'cstring'],
                 \   ['b', '+ Base64', 'base64'],
