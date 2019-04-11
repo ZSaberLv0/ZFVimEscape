@@ -83,24 +83,54 @@ let g:ZFVimEscape_html_entities = {
 
 
 " ================================================================================
+function! s:TransformAction(algorithm, str)
+    if a:algorithm =~# '^\u\|#'
+        return {a:algorithm}(a:str)
+    else
+        return s:{a:algorithm}(a:str)
+    endif
+endfunction
+function! s:Transform_normal(algorithm) abort
+    silent exe "normal! `[v`]y"
+    let @@ = s:TransformAction(a:algorithm, @@)
+    normal! gvp
+endfunction
+function! s:Transform_line(algorithm) abort
+    silent exe "normal! '[V']y"
+    let result = []
+    for line in split(@@, "\n")
+        call add(result, s:TransformAction(a:algorithm, line))
+    endfor
+    let @@ = join(result, "\n")
+    normal! gvp
+endfunction
+function! s:Transform_block(algorithm) abort
+    silent exe "normal! `[\<C-V>`]x"
+    let pos = getpos('.')
+    let oldPos = copy(pos)
+    for line in split(@@, "\n")
+        let @@ = s:TransformAction(a:algorithm, line)
+        normal! P
+        let pos[1] += 1
+        call setpos('.', pos)
+    endfor
+    call setpos('.', oldPos)
+endfunction
+
 function! s:Transform(algorithm,type) abort
     let sel_save = &selection
     let cb_save = &clipboard
     set selection=inclusive clipboard-=unnamed clipboard-=unnamedplus
     let reg_save = @@
+
     if a:type ==# 'line'
-        silent exe "normal! '[V']y"
+        call s:Transform_line(a:algorithm)
     elseif a:type ==# 'block'
-        silent exe "normal! `[\<C-V>`]y"
+        call s:Transform_block(a:algorithm)
     else
-        silent exe "normal! `[v`]y"
+        call s:Transform_normal(a:algorithm)
     endif
-    if a:algorithm =~# '^\u\|#'
-        let @@ = {a:algorithm}(@@)
-    else
-        let @@ = s:{a:algorithm}(@@)
-    endif
-    norm! gvp
+
     let @@ = reg_save
     let &selection = sel_save
     let &clipboard = cb_save
