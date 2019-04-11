@@ -83,38 +83,58 @@ let g:ZFVimEscape_html_entities = {
 
 
 " ================================================================================
+let g:ZFVimEscapeRunningMode = ''
+let g:ZFVimEscapeRunningIndex = -1
+
 function! s:TransformAction(algorithm, str)
-    if a:algorithm =~# '^\u\|#'
-        return {a:algorithm}(a:str)
-    else
-        return s:{a:algorithm}(a:str)
-    endif
+    return {a:algorithm}(a:str)
 endfunction
+
 function! s:Transform_normal(algorithm) abort
+    let g:ZFVimEscapeRunningMode = 'normal'
+    let g:ZFVimEscapeRunningIndex = 0
+
     silent exe "normal! `[v`]y"
     let @@ = s:TransformAction(a:algorithm, @@)
     normal! gvp
+
+    let g:ZFVimEscapeRunningMode = ''
+    let g:ZFVimEscapeRunningIndex = -1
 endfunction
 function! s:Transform_line(algorithm) abort
+    let g:ZFVimEscapeRunningMode = 'line'
+    let g:ZFVimEscapeRunningIndex = 0
+
     silent exe "normal! '[V']y"
     let result = []
     for line in split(@@, "\n")
         call add(result, s:TransformAction(a:algorithm, line))
+        let g:ZFVimEscapeRunningIndex += 1
     endfor
     let @@ = join(result, "\n")
     normal! gvp
+
+    let g:ZFVimEscapeRunningMode = ''
+    let g:ZFVimEscapeRunningIndex = -1
 endfunction
 function! s:Transform_block(algorithm) abort
+    let g:ZFVimEscapeRunningMode = 'block'
+    let g:ZFVimEscapeRunningIndex = 0
+
     silent exe "normal! `[\<C-V>`]x"
     let pos = getpos('.')
     let oldPos = copy(pos)
     for line in split(@@, "\n")
         let @@ = s:TransformAction(a:algorithm, line)
+        let g:ZFVimEscapeRunningIndex += 1
         normal! P
         let pos[1] += 1
         call setpos('.', pos)
     endfor
     call setpos('.', oldPos)
+
+    let g:ZFVimEscapeRunningMode = ''
+    let g:ZFVimEscapeRunningIndex = -1
 endfunction
 
 function! s:Transform(algorithm,type) abort
@@ -146,10 +166,10 @@ function! s:TransformSetup(algorithm) abort
     return 'g@'
 endfunction
 
-function! s:ZFVimEscapeMapTransform(algorithm)
-    exe 'nnoremap <expr> <Plug>ZFVimEscape_'     .a:algorithm.' <SID>TransformSetup("'.a:algorithm.'")'
-    exe 'xnoremap <expr> <Plug>ZFVimEscape_'     .a:algorithm.' <SID>TransformSetup("'.a:algorithm.'")'
-    exe 'nnoremap <expr> <Plug>ZFVimEscape_line_'.a:algorithm.' <SID>TransformSetup("'.a:algorithm.'")."_"'
+function! ZFVimEscapeMapTransform(name, algorithm)
+    exe 'nnoremap <expr> <Plug>ZFVimEscape_'     .a:name.' <SID>TransformSetup("'.a:algorithm.'")'
+    exe 'xnoremap <expr> <Plug>ZFVimEscape_'     .a:name.' <SID>TransformSetup("'.a:algorithm.'")'
+    exe 'nnoremap <expr> <Plug>ZFVimEscape_line_'.a:name.' <SID>TransformSetup("'.a:algorithm.'")."_"'
 endfunction
 
 " ================================================================================
@@ -162,7 +182,7 @@ function! s:xml_encode(str)
     let str = substitute(str,'"','\&quot;','g')
     return str
 endfunction
-call s:ZFVimEscapeMapTransform('xml_encode')
+call ZFVimEscapeMapTransform('xml_encode', 's:xml_encode')
 
 function! s:xml_entity_decode(str)
     let str = a:str
@@ -180,7 +200,7 @@ function! s:xml_decode(str)
     let str = substitute(a:str,'<\%([[:alnum:]-]\+=\%("[^"]*"\|''[^'']*''\)\|.\)\{-\}>','','g')
     return s:xml_entity_decode(str)
 endfunction
-call s:ZFVimEscapeMapTransform('xml_decode')
+call ZFVimEscapeMapTransform('xml_decode', 's:xml_decode')
 
 " ================================================================================
 " json
@@ -193,7 +213,7 @@ function! s:json_encode(str)
     let str = substitute(str,"\n",'\\n','g')
     return str
 endfunction
-call s:ZFVimEscapeMapTransform('json_encode')
+call ZFVimEscapeMapTransform('json_encode', 's:json_encode')
 
 function! s:json_decode(str)
     let str = a:str
@@ -204,7 +224,7 @@ function! s:json_decode(str)
     let str = substitute(str,'\\n',"\n",'g')
     return str
 endfunction
-call s:ZFVimEscapeMapTransform('json_decode')
+call ZFVimEscapeMapTransform('json_decode', 's:json_decode')
 
 " ================================================================================
 " unicode
@@ -219,14 +239,14 @@ function! s:unicode_encode(str)
     let str = substitute(str, '\(.\)', '\=printf("\\u%04' . x . '", char2nr(submatch(1)))', 'g')
     return str
 endfunction
-call s:ZFVimEscapeMapTransform('unicode_encode')
+call ZFVimEscapeMapTransform('unicode_encode', 's:unicode_encode')
 
 function! s:unicode_decode(str)
     let str = a:str
     let str = substitute(str, '\\u\(\x\x\x\x\)', '\=nr2char("0x" . submatch(1))', 'g')
     return str
 endfunction
-call s:ZFVimEscapeMapTransform('unicode_decode')
+call ZFVimEscapeMapTransform('unicode_decode', 's:unicode_decode')
 
 " ================================================================================
 " UTF8
@@ -257,7 +277,7 @@ function! s:utf8_encode(str)
     let str = substitute(str, '\(.\)', '\=s:utf8_encode_char("' . x . '", submatch(1),"")', 'g')
     return str
 endfunction
-call s:ZFVimEscapeMapTransform('utf8_encode')
+call ZFVimEscapeMapTransform('utf8_encode', 's:utf8_encode')
 
 function! s:utf8_decode_char_1(str)
     return nr2char("0x" . a:str)
@@ -286,17 +306,22 @@ function! s:utf8_decode(str)
     let str = substitute(str, '\([01234567]\x\)', '\=s:utf8_decode_char_1(submatch(1))', 'g')
     return str
 endfunction
-call s:ZFVimEscapeMapTransform('utf8_decode')
+call ZFVimEscapeMapTransform('utf8_decode', 's:utf8_decode')
 
 " ================================================================================
 " binary string
 " convert between "6162" and "ab" with specified encoding
 let s:binstr_prevenc='utf-8'
 function! s:binstr_encode(str)
-    let encoding = input('[Python] input encoding: ', s:binstr_prevenc)
-    if !empty(encoding)
-        let s:binstr_prevenc = encoding
+    if g:ZFVimEscapeRunningIndex == 0
+        let encoding = input('[Python] input encoding: ', s:binstr_prevenc)
+    else
+        let encoding = s:binstr_prevenc
     endif
+    if empty(encoding)
+        return a:str
+    endif
+    let s:binstr_prevenc = encoding
     let str = a:str
     if !empty(s:python_EOF)
 
@@ -318,13 +343,18 @@ python_EOF
     endif
     return result
 endfunction
-call s:ZFVimEscapeMapTransform('binstr_encode')
+call ZFVimEscapeMapTransform('binstr_encode', 's:binstr_encode')
 
 function! s:binstr_decode(str)
-    let encoding = input('[Python] input encoding: ', s:binstr_prevenc)
-    if !empty(encoding)
-        let s:binstr_prevenc = encoding
+    if g:ZFVimEscapeRunningIndex == 0
+        let encoding = input('[Python] input encoding: ', s:binstr_prevenc)
+    else
+        let encoding = s:binstr_prevenc
     endif
+    if empty(encoding)
+        return a:str
+    endif
+    let s:binstr_prevenc = encoding
     let str = a:str
     if !empty(s:python_EOF)
 
@@ -344,7 +374,7 @@ python_EOF
     endif
     return result
 endfunction
-call s:ZFVimEscapeMapTransform('binstr_decode')
+call ZFVimEscapeMapTransform('binstr_decode', 's:binstr_decode')
 
 " ================================================================================
 " url
@@ -361,7 +391,7 @@ function! s:url_encode(str)
     let str = substitute(str, '\([^A-Za-z0-9_.~-]\)', '\=s:url_encode_char(submatch(1))', 'g')
     return str
 endfunction
-call s:ZFVimEscapeMapTransform('url_encode')
+call ZFVimEscapeMapTransform('url_encode', 's:url_encode')
 
 function! s:url_decode_string(str)
     let str = substitute(a:str, '%', '', 'g')
@@ -384,7 +414,7 @@ function! s:url_decode(str)
     endwhile
     return ret
 endfunction
-call s:ZFVimEscapeMapTransform('url_decode')
+call ZFVimEscapeMapTransform('url_decode', 's:url_decode')
 
 " ================================================================================
 " C string
@@ -392,7 +422,7 @@ function! s:cstring_encode(str)
     let map = {"\n": 'n', "\r": 'r', "\t": 't', "\b": 'b', "\f": '\f', '"': '"', '\': '\'}
     return substitute(a:str,"[\001-\033\\\\\"]",'\="\\".get(map,submatch(0),printf("%03o",char2nr(submatch(0))))','g')
 endfunction
-call s:ZFVimEscapeMapTransform('cstring_encode')
+call ZFVimEscapeMapTransform('cstring_encode', 's:cstring_encode')
 
 function! s:cstring_decode(str)
     let map = {'n': "\n", 'r': "\r", 't': "\t", 'b': "\b", 'f': "\f", 'e': "\e", 'a': "\001", 'v': "\013", "\n": ''}
@@ -402,7 +432,7 @@ function! s:cstring_decode(str)
     endif
     return substitute(str,'\\\(\o\{1,3\}\|x\x\{1,2\}\|u\x\{1,4\}\|.\)','\=get(map,submatch(1),submatch(1) =~? "^[0-9xu]" ? nr2char("0".substitute(submatch(1),"^[Uu]","x","")) : submatch(1))','g')
 endfunction
-call s:ZFVimEscapeMapTransform('cstring_decode')
+call ZFVimEscapeMapTransform('cstring_decode', 's:cstring_decode')
 
 " ================================================================================
 " base64
@@ -446,7 +476,7 @@ base64_encode_python2
     endif
     return result
 endfunction
-call s:ZFVimEscapeMapTransform('base64_encode')
+call ZFVimEscapeMapTransform('base64_encode', 's:base64_encode')
 
 function! s:base64_decode(str)
     let str = a:str
@@ -485,7 +515,7 @@ base64_decode_python2
     endif
     return result
 endfunction
-call s:ZFVimEscapeMapTransform('base64_decode')
+call ZFVimEscapeMapTransform('base64_decode', 's:base64_decode')
 
 " ================================================================================
 " timestamp, format: 2018-10-10 12:34:56
@@ -516,7 +546,7 @@ python_EOF
     endif
     return result
 endfunction
-call s:ZFVimEscapeMapTransform('timestamp_encode')
+call ZFVimEscapeMapTransform('timestamp_encode', 's:timestamp_encode')
 
 function! s:timestamp_decode(str)
     let str = substitute(a:str, '^[ \t\r\n]*\(.\{-}\)[ \t\r\n]*$', '\1', 'g')
@@ -526,7 +556,7 @@ function! s:timestamp_decode(str)
     endif
     return strftime(g:ZFVimEscape_timestamp_pattern, str)
 endfunction
-call s:ZFVimEscapeMapTransform('timestamp_decode')
+call ZFVimEscapeMapTransform('timestamp_decode', 's:timestamp_decode')
 
 " ================================================================================
 " crc32
@@ -561,7 +591,7 @@ crc32_encode_python2
     endif
     return result
 endfunction
-call s:ZFVimEscapeMapTransform('crc32_encode')
+call ZFVimEscapeMapTransform('crc32_encode', 's:crc32_encode')
 
 " ================================================================================
 " md5
@@ -577,7 +607,7 @@ function! s:md5_encode(str)
         return a:str
     endtry
 endfunction
-call s:ZFVimEscapeMapTransform('md5_encode')
+call ZFVimEscapeMapTransform('md5_encode', 's:md5_encode')
 
 " ================================================================================
 " qrcode
@@ -617,7 +647,7 @@ python_EOF
     endif
     return result
 endfunction
-call s:ZFVimEscapeMapTransform('qrcode_encode')
+call ZFVimEscapeMapTransform('qrcode_encode', 's:qrcode_encode')
 
 " ================================================================================
 " util function, usage
