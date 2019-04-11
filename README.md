@@ -26,7 +26,7 @@ if you like my work, [check here](https://github.com/ZSaberLv0?utf8=%E2%9C%93&ta
 ## util method
 
 ```
-xnoremap your_keymap <esc>:call ZF_VimEscape()<cr>
+xnoremap your_keymap <esc>:call ZF_VimEscape('v')<cr>
 nnoremap your_keymap :call ZF_VimEscape()<cr>
 ```
 

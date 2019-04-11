@@ -81,18 +81,16 @@ let g:ZFVimEscape_html_entities = {
             \ 'spades':  9824, 'clubs':   9827, 'hearts':  9829, 'diams':   9830,
             \ 'apos':      39}
 
-function! s:Transform(algorithm,type)
+
+" ================================================================================
+function! s:Transform(algorithm,type) abort
     let sel_save = &selection
     let cb_save = &clipboard
-    set selection=exclusive clipboard-=unnamed clipboard-=unnamedplus
+    set selection=inclusive clipboard-=unnamed clipboard-=unnamedplus
     let reg_save = @@
-    if a:type =~ '^\d\+$'
-        silent exe 'norm! ^v'.a:type.'$hy'
-    elseif a:type =~ '^.$'
-        silent exe "normal! `<" . a:type . "`>y"
-    elseif a:type == 'line'
+    if a:type ==# 'line'
         silent exe "normal! '[V']y"
-    elseif a:type == 'block'
+    elseif a:type ==# 'block'
         silent exe "normal! `[\<C-V>`]y"
     else
         silent exe "normal! `[v`]y"
@@ -106,24 +104,22 @@ function! s:Transform(algorithm,type)
     let @@ = reg_save
     let &selection = sel_save
     let &clipboard = cb_save
-    if a:type =~ '^\d\+$'
-        silent! call repeat#set("\<Plug>ZFVimEscape_line_".a:algorithm,a:type)
-    endif
 endfunction
 
-function! s:TransformOpfunc(type)
+function! ZF_VimEscape_TransformOpfunc(type) abort
     return s:Transform(s:encode_algorithm, a:type)
 endfunction
 
-function! s:TransformSetup(algorithm)
+function! s:TransformSetup(algorithm) abort
     let s:encode_algorithm = a:algorithm
-    let &opfunc = matchstr(expand('<sfile>'), '<SNR>\d\+_').'TransformOpfunc'
+    let &opfunc = 'ZF_VimEscape_TransformOpfunc'
+    return 'g@'
 endfunction
 
 function! s:ZFVimEscapeMapTransform(algorithm)
-    exe 'nnoremap <silent> <Plug>ZFVimEscape_'    .a:algorithm.' :<C-U>call <SID>TransformSetup("'.a:algorithm.'")<CR>g@'
-    exe 'xnoremap <silent> <Plug>ZFVimEscape_'    .a:algorithm.' :<C-U>call <SID>Transform("'.a:algorithm.'",visualmode())<CR>'
-    exe 'nnoremap <silent> <Plug>ZFVimEscape_line_'.a:algorithm.' :<C-U>call <SID>Transform("'.a:algorithm.'",v:count1)<CR>'
+    exe 'nnoremap <expr> <Plug>ZFVimEscape_'     .a:algorithm.' <SID>TransformSetup("'.a:algorithm.'")'
+    exe 'xnoremap <expr> <Plug>ZFVimEscape_'     .a:algorithm.' <SID>TransformSetup("'.a:algorithm.'")'
+    exe 'nnoremap <expr> <Plug>ZFVimEscape_line_'.a:algorithm.' <SID>TransformSetup("'.a:algorithm.'")."_"'
 endfunction
 
 " ================================================================================
@@ -271,9 +267,8 @@ function! s:binstr_encode(str)
     if !empty(encoding)
         let s:binstr_prevenc = encoding
     endif
-    let resultArr = []
-    for str in split(a:str, "\n")
-        if !empty(s:python_EOF)
+    let str = a:str
+    if !empty(s:python_EOF)
 
 execute s:python_EOF
 import string
@@ -284,16 +279,14 @@ result = str.encode(encoding)
 vim.command("let result='%s'"% result.hex())
 python_EOF
 
-        else
-            echomsg "Warning: binstr_encode require python"
-            return a:str
-        endif
-        if !exists('g:ZFVimEscape_binstr_lowercase') || g:ZFVimEscape_binstr_lowercase != 1
-            let result = toupper(result)
-        endif
-        call add(resultArr, result)
-    endfor
-    return join(resultArr, "\n")
+    else
+        echomsg "Warning: binstr_encode require python"
+        return a:str
+    endif
+    if !exists('g:ZFVimEscape_binstr_lowercase') || g:ZFVimEscape_binstr_lowercase != 1
+        let result = toupper(result)
+    endif
+    return result
 endfunction
 call s:ZFVimEscapeMapTransform('binstr_encode')
 
@@ -302,9 +295,8 @@ function! s:binstr_decode(str)
     if !empty(encoding)
         let s:binstr_prevenc = encoding
     endif
-    let resultArr = []
-    for str in split(a:str, "\n")
-        if !empty(s:python_EOF)
+    let str = a:str
+    if !empty(s:python_EOF)
 
 execute s:python_EOF
 import string
@@ -316,13 +308,11 @@ result = bytearray.fromhex(str).decode(encoding)
 vim.command("let result='%s'"% result)
 python_EOF
 
-        else
-            echomsg "Warning: binstr_decode require python"
-            return a:str
-        endif
-        call add(resultArr, result)
-    endfor
-    return join(resultArr, "\n")
+    else
+        echomsg "Warning: binstr_decode require python"
+        return a:str
+    endif
+    return result
 endfunction
 call s:ZFVimEscapeMapTransform('binstr_decode')
 
