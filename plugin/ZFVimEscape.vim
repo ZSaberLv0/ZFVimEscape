@@ -329,6 +329,7 @@ function! s:binstr_encode(str)
     let s:binstr_prevenc = encoding
     let str = a:str
     if !empty(s:python_EOF)
+        try
 
 execute s:python_EOF
 import string
@@ -339,6 +340,10 @@ result = str.encode(encoding)
 vim.command("let result='%s'"% result.hex())
 python_EOF
 
+        catch
+            echomsg 'Warning: unable to convert string with encoding: ' . encoding
+            return a:str
+        endtry
     else
         echomsg "Warning: binstr_encode require python"
         return a:str
@@ -366,6 +371,7 @@ function! s:binstr_decode(str)
     let s:binstr_prevenc = encoding
     let str = a:str
     if !empty(s:python_EOF)
+        try
 
 execute s:python_EOF
 import string
@@ -377,6 +383,10 @@ result = bytearray.fromhex(str).decode(encoding)
 vim.command("let result='%s'"% result)
 python_EOF
 
+        catch
+            echomsg 'Warning: unable to convert string with encoding: ' . encoding
+            return a:str
+        endtry
     else
         echomsg "Warning: binstr_decode require python"
         return a:str
