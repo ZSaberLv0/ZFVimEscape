@@ -85,6 +85,7 @@ let g:ZFVimEscape_html_entities = {
 " ================================================================================
 let g:ZFVimEscapeRunningMode = ''
 let g:ZFVimEscapeRunningIndex = -1
+let s:state = {}
 
 function! s:TransformAction(algorithm, str)
     return {a:algorithm}(a:str)
@@ -311,16 +312,20 @@ call ZFVimEscapeMapTransform('utf8_decode', 's:utf8_decode')
 " ================================================================================
 " binary string
 " convert between "6162" and "ab" with specified encoding
-let s:binstr_prevenc='utf-8'
+let s:binstr_prevenc = 'utf-8'
 function! s:binstr_encode(str)
     if g:ZFVimEscapeRunningIndex == 0
-        let encoding = input('[Python] input encoding: ', s:binstr_prevenc)
+        let encoding = get(s:state, 'binstr_prevenc', '')
+        if empty(encoding)
+            let encoding = input('[Python] input encoding: ', s:binstr_prevenc)
+        endif
     else
-        let encoding = s:binstr_prevenc
+        let encoding = get(s:state, 'binstr_prevenc', '')
     endif
     if empty(encoding)
         return a:str
     endif
+    let s:state['binstr_prevenc'] = encoding
     let s:binstr_prevenc = encoding
     let str = a:str
     if !empty(s:python_EOF)
@@ -347,13 +352,17 @@ call ZFVimEscapeMapTransform('binstr_encode', 's:binstr_encode')
 
 function! s:binstr_decode(str)
     if g:ZFVimEscapeRunningIndex == 0
-        let encoding = input('[Python] input encoding: ', s:binstr_prevenc)
+        let encoding = get(s:state, 'binstr_prevenc', '')
+        if empty(encoding)
+            let encoding = input('[Python] input encoding: ', s:binstr_prevenc)
+        endif
     else
-        let encoding = s:binstr_prevenc
+        let encoding = get(s:state, 'binstr_prevenc', '')
     endif
     if empty(encoding)
         return a:str
     endif
+    let s:state['binstr_prevenc'] = encoding
     let s:binstr_prevenc = encoding
     let str = a:str
     if !empty(s:python_EOF)
@@ -663,7 +672,7 @@ function! ZF_VimEscape(...)
                 \   ['s', '+ JSON', 'json'],
                 \   ['u', '+ Unicode', 'unicode'],
                 \   ['8', '+ UTF-8', 'utf8'],
-                \   ['y', '+ Binary String', 'binstr'],
+                \   ['i', '+ Binary String', 'binstr'],
                 \   ['l', '+ URL', 'url'],
                 \   ['c', '+ C string', 'cstring'],
                 \   ['b', '+ Base64', 'base64'],
@@ -690,12 +699,23 @@ function! ZF_VimEscape(...)
                     \   'text' : item[1],
                     \   'callback' : 'ZF_VimEscapeCallback',
                     \   'callbackParam0' : item[2],
-                    \   'callbackParam1' : mode})
+                    \   'callbackParam1' : mode,
+                    \ })
     endfor
+
+    call ZF_VimCmdMenuAdd({
+                \   'showKeyHint' : 1,
+                \   'key' : 'z',
+                \   'text' : '### reset state ###',
+                \   'callback' : 'ZF_VimEscapeReset',
+                \ })
 
     call ZF_VimCmdMenuShow({'headerText' : 'escape method:'})
 endfunction
 
+function! ZF_VimEscapeReset()
+    let s:state = {}
+endfunction
 function! ZF_VimEscapeMenuCallback(name, func, mode)
     call ZF_VimCmdMenuAdd({
                 \   'showKeyHint' : 0,
