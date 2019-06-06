@@ -317,7 +317,9 @@ function! s:binstr_encode(str)
     if g:ZFVimEscapeRunningIndex == 0
         let encoding = get(s:state, 'binstr_prevenc', '')
         if empty(encoding)
+            call inputsave()
             let encoding = input('[Python] input encoding: ', s:binstr_prevenc)
+            call inputrestore()
         endif
     else
         let encoding = get(s:state, 'binstr_prevenc', '')
@@ -359,7 +361,9 @@ function! s:binstr_decode(str)
     if g:ZFVimEscapeRunningIndex == 0
         let encoding = get(s:state, 'binstr_prevenc', '')
         if empty(encoding)
+            call inputsave()
             let encoding = input('[Python] input encoding: ', s:binstr_prevenc)
+            call inputrestore()
         endif
     else
         let encoding = get(s:state, 'binstr_prevenc', '')
