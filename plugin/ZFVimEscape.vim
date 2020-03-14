@@ -1,12 +1,3 @@
-" ZFVimEscape.vim - utilities to escape special chars
-" Maintainer:   ZSaberLv0 <http://zsaber.com/>
-"               modified from tpope's vim-unimpaired
-"               (https://github.com/tpope/vim-unimpaired)
-" Version:      1.0
-if &cp || v:version < 700
-    finish
-endif
-let g:loaded_ZFVimEscape = 1
 
 if has('python3')
     let s:python_EOF='python3 << python_EOF'
@@ -95,7 +86,7 @@ function! s:Transform_normal(algorithm) abort
     let g:ZFVimEscapeRunningMode = 'normal'
     let g:ZFVimEscapeRunningIndex = 0
 
-    silent exe "normal! `[v`]y"
+    silent exe 'normal! `[v`]y'
     let @@ = s:TransformAction(a:algorithm, @@)
     normal! gvp
 
@@ -122,7 +113,7 @@ function! s:Transform_block(algorithm) abort
     let g:ZFVimEscapeRunningMode = 'block'
     let g:ZFVimEscapeRunningIndex = 0
 
-    silent exe "normal! `[\<C-V>`]x"
+    silent exe 'normal! `[\<C-V>`]x'
     let pos = getpos('.')
     let oldPos = copy(pos)
     for line in split(@@, "\n")
@@ -229,7 +220,7 @@ call ZFVimEscapeMapTransform('json_decode', 's:json_decode')
 
 " ================================================================================
 " unicode
-" convert between "\u0061\u0062" and "ab"
+" convert between `\u0061\u0062` and `ab`
 function! s:unicode_encode(str)
     let str = a:str
     if !exists('g:ZFVimEscape_unicode_lowercase') || g:ZFVimEscape_unicode_lowercase != 1
@@ -251,7 +242,7 @@ call ZFVimEscapeMapTransform('unicode_decode', 's:unicode_decode')
 
 " ================================================================================
 " UTF8
-" convert between "6162" and "ab"
+" convert between `6162` and `ab`
 function! s:utf8_encode_char(x, str, prefix)
     let n = char2nr(a:str)
     if n <= 0x7F
@@ -281,19 +272,19 @@ endfunction
 call ZFVimEscapeMapTransform('utf8_encode', 's:utf8_encode')
 
 function! s:utf8_decode_char_1(str)
-    return nr2char("0x" . a:str)
+    return nr2char('0x' . a:str)
 endfunction
 function! s:utf8_decode_char_2(str)
-    let n0 = char2nr(nr2char("0x" . substitute(a:str, '\(\x\x\)\x\x', '\1', 'g')))
-    let n1 = char2nr(nr2char("0x" . substitute(a:str, '\x\x\(\x\x\)', '\1', 'g')))
+    let n0 = char2nr(nr2char('0x' . substitute(a:str, '\(\x\x\)\x\x', '\1', 'g')))
+    let n1 = char2nr(nr2char('0x' . substitute(a:str, '\x\x\(\x\x\)', '\1', 'g')))
     let n = and(n1, 0x3F)
     let n = or(n, and(n0, 0x1F) * 64)
     return nr2char(n)
 endfunction
 function! s:utf8_decode_char_3(str)
-    let n0 = char2nr(nr2char("0x" . substitute(a:str, '\(\x\x\)\x\x\x\x', '\1', 'g')))
-    let n1 = char2nr(nr2char("0x" . substitute(a:str, '\x\x\(\x\x\)\x\x', '\1', 'g')))
-    let n2 = char2nr(nr2char("0x" . substitute(a:str, '\x\x\x\x\(\x\x\)', '\1', 'g')))
+    let n0 = char2nr(nr2char('0x' . substitute(a:str, '\(\x\x\)\x\x\x\x', '\1', 'g')))
+    let n1 = char2nr(nr2char('0x' . substitute(a:str, '\x\x\(\x\x\)\x\x', '\1', 'g')))
+    let n2 = char2nr(nr2char('0x' . substitute(a:str, '\x\x\x\x\(\x\x\)', '\1', 'g')))
     let n = and(n2, 0x3F)
     let n = or(n, and(n1, 0x3F) * 64)
     let n = or(n, and(n0, 0x0F) * 4096)
@@ -311,7 +302,7 @@ call ZFVimEscapeMapTransform('utf8_decode', 's:utf8_decode')
 
 " ================================================================================
 " binary string
-" convert between "6162" and "ab" with specified encoding
+" convert between '6162' and 'ab' with specified encoding
 let s:binstr_prevenc = 'utf-8'
 function! s:binstr_encode(str)
     if g:ZFVimEscapeRunningIndex == 0
@@ -336,8 +327,8 @@ function! s:binstr_encode(str)
 execute s:python_EOF
 import string
 import vim
-str = vim.eval("str")
-encoding = vim.eval("encoding")
+str = vim.eval('str')
+encoding = vim.eval('encoding')
 result = str.encode(encoding)
 vim.command("let result='%s'"% result.hex())
 python_EOF
@@ -347,7 +338,7 @@ python_EOF
             return a:str
         endtry
     else
-        echomsg "Warning: binstr_encode require python"
+        echomsg 'Warning: binstr_encode require python'
         return a:str
     endif
     if !exists('g:ZFVimEscape_binstr_lowercase') || g:ZFVimEscape_binstr_lowercase != 1
@@ -381,8 +372,8 @@ execute s:python_EOF
 import string
 import array
 import vim
-str = vim.eval("str")
-encoding = vim.eval("encoding")
+str = vim.eval('str')
+encoding = vim.eval('encoding')
 result = bytearray.fromhex(str).decode(encoding)
 vim.command("let result='%s'"% result)
 python_EOF
@@ -392,7 +383,7 @@ python_EOF
             return a:str
         endtry
     else
-        echomsg "Warning: binstr_decode require python"
+        echomsg 'Warning: binstr_decode require python'
         return a:str
     endif
     return result
@@ -459,13 +450,16 @@ call ZFVimEscapeMapTransform('cstring_decode', 's:cstring_decode')
 
 " ================================================================================
 " base64
-let s:ZFVimEscape_base64_table_default="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
-if !exists("g:ZFVimEscape_base64_table")
-    let g:ZFVimEscape_base64_table="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+let g:ZFVimEscape_base64_table_default = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+if !exists('g:ZFVimEscape_base64_table')
+    let g:ZFVimEscape_base64_table = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 endif
-if !exists("g:ZFVimEscape_base64_pad")
-    let g:ZFVimEscape_base64_pad="="
+
+let g:ZFVimEscape_base64_pad_default = '='
+if !exists('g:ZFVimEscape_base64_pad')
+    let g:ZFVimEscape_base64_pad=g:ZFVimEscape_base64_pad_default
 endif
+
 function! s:base64_encode(str)
     if has('python3')
 
@@ -473,9 +467,9 @@ python3 << base64_encode_python3
 import string
 import base64
 import vim
-str = vim.eval("a:str")
-tableDefault = vim.eval("s:ZFVimEscape_base64_table_default")
-table = vim.eval("g:ZFVimEscape_base64_table . g:ZFVimEscape_base64_pad")
+str = vim.eval('a:str')
+tableDefault = vim.eval('g:ZFVimEscape_base64_table_default . g:ZFVimEscape_base64_pad_default')
+table = vim.eval('g:ZFVimEscape_base64_table . g:ZFVimEscape_base64_pad')
 result = base64.b64encode(str.encode()).translate(bytes.maketrans(tableDefault.encode(), table.encode())).decode()
 vim.command("let result='%s'"% result)
 base64_encode_python3
@@ -486,15 +480,15 @@ python << base64_encode_python2
 import string
 import base64
 import vim
-str = vim.eval("a:str")
-tableDefault = vim.eval("s:ZFVimEscape_base64_table_default")
-table = vim.eval("g:ZFVimEscape_base64_table . g:ZFVimEscape_base64_pad")
+str = vim.eval('a:str')
+tableDefault = vim.eval('g:ZFVimEscape_base64_table_default . g:ZFVimEscape_base64_pad_default')
+table = vim.eval('g:ZFVimEscape_base64_table . g:ZFVimEscape_base64_pad')
 result = base64.b64encode(str).translate(string.maketrans(tableDefault, table))
 vim.command("let result='%s'"% result)
 base64_encode_python2
 
     else
-        echomsg "Warning: base64_encode require python"
+        echomsg 'Warning: base64_encode require python'
         return a:str
     endif
     return result
@@ -512,9 +506,9 @@ python3 << base64_decode_python3
 import string
 import base64
 import vim
-str = vim.eval("str")
-tableDefault = vim.eval("s:ZFVimEscape_base64_table_default")
-table = vim.eval("g:ZFVimEscape_base64_table . g:ZFVimEscape_base64_pad")
+str = vim.eval('str')
+tableDefault = vim.eval('g:ZFVimEscape_base64_table_default . g:ZFVimEscape_base64_pad_default')
+table = vim.eval('g:ZFVimEscape_base64_table . g:ZFVimEscape_base64_pad')
 result = base64.b64decode(str.encode().translate(bytes.maketrans(table.encode(), tableDefault.encode()))).decode()
 vim.command("let result='%s'"% result)
 base64_decode_python3
@@ -525,15 +519,15 @@ python << base64_decode_python2
 import string
 import base64
 import vim
-str = vim.eval("str")
-tableDefault = vim.eval("s:ZFVimEscape_base64_table_default")
-table = vim.eval("g:ZFVimEscape_base64_table . g:ZFVimEscape_base64_pad")
+str = vim.eval('str')
+tableDefault = vim.eval('g:ZFVimEscape_base64_table_default . g:ZFVimEscape_base64_pad_default')
+table = vim.eval('g:ZFVimEscape_base64_table . g:ZFVimEscape_base64_pad')
 result = base64.b64decode(str.translate(string.maketrans(table, tableDefault)))
 vim.command("let result='%s'"% result)
 base64_decode_python2
 
     else
-        echomsg "Warning: base64_decode require python"
+        echomsg 'Warning: base64_decode require python'
         return a:str
     endif
     return result
@@ -554,9 +548,9 @@ function! s:timestamp_encode(str)
 execute s:python_EOF
 import time
 import vim
-str = vim.eval("str")
-result = time.mktime(time.strptime(str, vim.eval("g:ZFVimEscape_timestamp_pattern")))
-vim.command("let result='%d'"% result)
+str = vim.eval('str')
+result = time.mktime(time.strptime(str, vim.eval('g:ZFVimEscape_timestamp_pattern')))
+vim.command('let result="%d"'% result)
 python_EOF
 
         catch
@@ -564,7 +558,7 @@ python_EOF
             return a:str
         endtry
     else
-        echomsg "Warning: timestamp_encode require python"
+        echomsg 'Warning: timestamp_encode require python'
         return a:str
     endif
     return result
@@ -589,7 +583,7 @@ function! s:crc32_encode(str)
 python3 << crc32_encode_python3
 import binascii
 import vim
-str = vim.eval("a:str")
+str = vim.eval('a:str')
 result = binascii.crc32(str.encode())
 vim.command("let result='%s'"% result)
 crc32_encode_python3
@@ -599,13 +593,13 @@ crc32_encode_python3
 python << crc32_encode_python2
 import binascii
 import vim
-str = vim.eval("a:str")
+str = vim.eval('a:str')
 result = binascii.crc32(str)
 vim.command("let result='%s'"% result)
 crc32_encode_python2
 
     else
-        echomsg "Warning: crc32_encode require python"
+        echomsg 'Warning: crc32_encode require python'
         return a:str
     endif
     let result = printf('%08x', result)
@@ -626,7 +620,7 @@ function! s:md5_encode(str)
         endif
         return ret
     catch
-        echomsg "Warning: md5_encode require retorillo/md5.vim"
+        echomsg 'Warning: md5_encode require retorillo/md5.vim'
         return a:str
     endtry
 endfunction
@@ -647,18 +641,18 @@ function! s:qrcode_encode(str)
 execute s:python_EOF
 import pyqrcode
 import vim
-str = vim.eval("a:str")
+str = vim.eval('a:str')
 data = pyqrcode.create(str)
 result = data.text()
 vim.command("let result='%s'"% result)
 python_EOF
 
         catch
-            echomsg "Warning: qrcode_encode require python pyqrcode"
+            echomsg 'Warning: qrcode_encode require python pyqrcode'
             return a:str
         endtry
     else
-        echomsg "Warning: qrcode_encode require python"
+        echomsg 'Warning: qrcode_encode require python'
         return a:str
     endif
     let result=substitute(result, '0', 'zfbgzf', 'g')
