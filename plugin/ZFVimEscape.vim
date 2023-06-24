@@ -271,32 +271,84 @@ function! s:utf8_encode(str)
 endfunction
 call ZFVimEscapeMapTransform('utf8_encode', 's:utf8_encode')
 
-function! s:utf8_decode_char_1(str)
-    return nr2char('0x' . a:str)
-endfunction
-function! s:utf8_decode_char_2(str)
-    let n0 = char2nr(nr2char('0x' . substitute(a:str, '\(\x\x\)\x\x', '\1', 'g')))
-    let n1 = char2nr(nr2char('0x' . substitute(a:str, '\x\x\(\x\x\)', '\1', 'g')))
-    let n = and(n1, 0x3F)
-    let n = or(n, and(n0, 0x1F) * 64)
-    return nr2char(n)
-endfunction
-function! s:utf8_decode_char_3(str)
-    let n0 = char2nr(nr2char('0x' . substitute(a:str, '\(\x\x\)\x\x\x\x', '\1', 'g')))
-    let n1 = char2nr(nr2char('0x' . substitute(a:str, '\x\x\(\x\x\)\x\x', '\1', 'g')))
-    let n2 = char2nr(nr2char('0x' . substitute(a:str, '\x\x\x\x\(\x\x\)', '\1', 'g')))
-    let n = and(n2, 0x3F)
-    let n = or(n, and(n1, 0x3F) * 64)
-    let n = or(n, and(n0, 0x0F) * 4096)
-    return nr2char(n)
-endfunction
 function! s:utf8_decode(str)
-    let str = a:str
-    let str = substitute(str, '[ \t]', '', 'g')
-    let str = substitute(str, '\c\(E\x[89AB]\x[89AB]\x\)', '\=s:utf8_decode_char_3(submatch(1))', 'g')
-    let str = substitute(str, '\c\([CD]\x[89AB]\x\)', '\=s:utf8_decode_char_2(submatch(1))', 'g')
-    let str = substitute(str, '\([01234567]\x\)', '\=s:utf8_decode_char_1(submatch(1))', 'g')
-    return str
+    let str = substitute(a:str, '[^0-9a-zA-Z]', '', 'g')
+    let len = len(str)
+    let p = 0
+    let ret = ''
+    while p < len
+        if p + 2 <= len
+                    \ && ('0x' . strpart(str, p, 2)) <= 0x7F
+            let ret .= nr2char('0x' . strpart(str, p, 2))
+            let p += 2
+        elseif p + 4 <= len
+                    \ && ('0x' . strpart(str, p, 2)) <= 0xDF
+                    \ && ('0x' . strpart(str, p + 2, 2)) <= 0xBF
+            let c = 0
+            let c = or(c, and('0x' . strpart(str, p, 2), 0x1F) * float2nr(pow(2, 6)) )
+            let c = or(c, and('0x' . strpart(str, p + 2, 2), 0x3F) )
+            let ret .= nr2char(c)
+            let p += 4
+        elseif p + 6 <= len
+                    \ && ('0x' . strpart(str, p, 2)) <= 0xEF
+                    \ && ('0x' . strpart(str, p + 2, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 4, 2)) <= 0xBF
+            let c = 0
+            let c = or(c, and('0x' . strpart(str, p, 2), 0x0F) * float2nr(pow(2, 12)) )
+            let c = or(c, and('0x' . strpart(str, p + 2, 2), 0x3F) * float2nr(pow(2, 6)) )
+            let c = or(c, and('0x' . strpart(str, p + 4, 2), 0x3F) )
+            let ret .= nr2char(c)
+            let p += 6
+        elseif p + 8 <= len
+                    \ && ('0x' . strpart(str, p, 2)) <= 0xF7
+                    \ && ('0x' . strpart(str, p + 2, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 4, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 6, 2)) <= 0xBF
+            let ret .= '?'
+            let p += 8
+        elseif p + 10 <= len
+                    \ && ('0x' . strpart(str, p, 2)) <= 0xFB
+                    \ && ('0x' . strpart(str, p + 2, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 4, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 6, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 8, 2)) <= 0xBF
+            let ret .= '?'
+            let p += 10
+        elseif p + 12 <= len
+                    \ && ('0x' . strpart(str, p, 2)) <= 0xFD
+                    \ && ('0x' . strpart(str, p + 2, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 4, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 6, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 8, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 10, 2)) <= 0xBF
+            let ret .= '?'
+            let p += 12
+        elseif p + 14 <= len
+                    \ && ('0x' . strpart(str, p, 2)) <= 0xFE
+                    \ && ('0x' . strpart(str, p + 2, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 4, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 6, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 8, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 10, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 12, 2)) <= 0xBF
+            let ret .= '?'
+            let p += 14
+        elseif p + 16 <= len
+                    \ && ('0x' . strpart(str, p, 2)) <= 0xFF
+                    \ && ('0x' . strpart(str, p + 2, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 4, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 6, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 8, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 10, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 12, 2)) <= 0xBF
+                    \ && ('0x' . strpart(str, p + 14, 2)) <= 0xBF
+            let ret .= '?'
+            let p += 16
+        else
+            break
+        endif
+    endwhile
+    return ret
 endfunction
 call ZFVimEscapeMapTransform('utf8_decode', 's:utf8_decode')
 
