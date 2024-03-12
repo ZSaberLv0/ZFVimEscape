@@ -52,7 +52,7 @@ xmap your_keymap <Plug>ZFVimEscape_json_decode
 ```
 
 ```
-a"  b\c <=>    a\"\tb\\c
+a"  b\c    <=>    a\"\tb\\c
 ```
 
 ## Unicode
@@ -139,7 +139,7 @@ xmap your_keymap <Plug>ZFVimEscape_crc32_encode
 ```
 
 ```
-abcd    <=>    ED82CD11
+abcd    =>    ED82CD11
 ```
 
 ## md5
@@ -149,7 +149,7 @@ xmap your_keymap <Plug>ZFVimEscape_md5_encode
 ```
 
 ```
-abcd    <=>    E2FC714C4727EE9395F324CD2E7F331F
+abcd    =>    E2FC714C4727EE9395F324CD2E7F331F
 ```
 
 ## qrcode
