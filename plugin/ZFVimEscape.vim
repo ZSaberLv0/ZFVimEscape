@@ -166,7 +166,7 @@ endfunction
 
 " ================================================================================
 " xml
-function! s:xml_encode(str)
+function! ZF_xml_encode(str)
     let str = a:str
     let str = substitute(str,'&','\&amp;','g')
     let str = substitute(str,'<','\&lt;','g')
@@ -174,9 +174,9 @@ function! s:xml_encode(str)
     let str = substitute(str,'"','\&quot;','g')
     return str
 endfunction
-call ZFVimEscapeMapTransform('xml_encode', 's:xml_encode')
+call ZFVimEscapeMapTransform('xml_encode', 'ZF_xml_encode')
 
-function! s:xml_entity_decode(str)
+function! ZF_xml_entity_decode(str)
     let str = a:str
     let str = substitute(str,'\c&#\%(0*38\|x0*26\);','&amp;','g')
     let str = substitute(str,'\c&#\(\d\+\);','\=nr2char(submatch(1))','g')
@@ -188,15 +188,15 @@ function! s:xml_entity_decode(str)
     let str = substitute(str,'\C&\(\%(amp;\)\@!\w*\);','\=nr2char(get(g:ZFVimEscape_html_entities,submatch(1),63))','g')
     return substitute(str,'\c&amp;','\&','g')
 endfunction
-function! s:xml_decode(str)
+function! ZF_xml_decode(str)
     let str = substitute(a:str,'<\%([[:alnum:]-]\+=\%("[^"]*"\|''[^'']*''\)\|.\)\{-\}>','','g')
-    return s:xml_entity_decode(str)
+    return ZF_xml_entity_decode(str)
 endfunction
-call ZFVimEscapeMapTransform('xml_decode', 's:xml_decode')
+call ZFVimEscapeMapTransform('xml_decode', 'ZF_xml_decode')
 
 " ================================================================================
 " json
-function! s:json_encode(str)
+function! ZF_json_encode(str)
     let str = a:str
     let str = substitute(str,'\\','\\\\','g')
     let str = substitute(str,'"','\\"','g')
@@ -205,9 +205,9 @@ function! s:json_encode(str)
     let str = substitute(str,"\n",'\\n','g')
     return str
 endfunction
-call ZFVimEscapeMapTransform('json_encode', 's:json_encode')
+call ZFVimEscapeMapTransform('json_encode', 'ZF_json_encode')
 
-function! s:json_decode(str)
+function! ZF_json_decode(str)
     let str = a:str
     let str = substitute(str,'\\\\','\\','g')
     let str = substitute(str,'\\"','"','g')
@@ -216,12 +216,12 @@ function! s:json_decode(str)
     let str = substitute(str,'\\n',"\n",'g')
     return str
 endfunction
-call ZFVimEscapeMapTransform('json_decode', 's:json_decode')
+call ZFVimEscapeMapTransform('json_decode', 'ZF_json_decode')
 
 " ================================================================================
 " unicode
 " convert between `\u0061\u0062` and `ab`
-function! s:unicode_encode(str)
+function! ZF_unicode_encode(str)
     let str = a:str
     if !exists('g:ZFVimEscape_unicode_lowercase') || g:ZFVimEscape_unicode_lowercase != 1
         let x = 'X'
@@ -231,19 +231,19 @@ function! s:unicode_encode(str)
     let str = substitute(str, '\(.\)', '\=printf("\\u%04' . x . '", char2nr(submatch(1)))', 'g')
     return str
 endfunction
-call ZFVimEscapeMapTransform('unicode_encode', 's:unicode_encode')
+call ZFVimEscapeMapTransform('unicode_encode', 'ZF_unicode_encode')
 
-function! s:unicode_decode(str)
+function! ZF_unicode_decode(str)
     let str = a:str
     let str = substitute(str, '\\u\(\x\x\x\x\)', '\=nr2char("0x" . submatch(1))', 'g')
     return str
 endfunction
-call ZFVimEscapeMapTransform('unicode_decode', 's:unicode_decode')
+call ZFVimEscapeMapTransform('unicode_decode', 'ZF_unicode_decode')
 
 " ================================================================================
 " UTF8
 " convert between `6162` and `ab`
-function! s:utf8_encode_char(x, str, prefix)
+function! ZF_utf8_encode_char(x, str, prefix)
     let n = char2nr(a:str)
     if n <= 0x7F
         return printf('%s%02' . a:x, a:prefix, n)
@@ -259,19 +259,19 @@ function! s:utf8_encode_char(x, str, prefix)
     endif
     return str
 endfunction
-function! s:utf8_encode(str)
+function! ZF_utf8_encode(str)
     let str = a:str
     if !exists('g:ZFVimEscape_utf8_lowercase') || g:ZFVimEscape_utf8_lowercase != 1
         let x = 'X'
     else
         let x = 'x'
     endif
-    let str = substitute(str, '\(.\)', '\=s:utf8_encode_char("' . x . '", submatch(1),"")', 'g')
+    let str = substitute(str, '\(.\)', '\=ZF_utf8_encode_char("' . x . '", submatch(1),"")', 'g')
     return str
 endfunction
-call ZFVimEscapeMapTransform('utf8_encode', 's:utf8_encode')
+call ZFVimEscapeMapTransform('utf8_encode', 'ZF_utf8_encode')
 
-function! s:utf8_decode(str)
+function! ZF_utf8_decode(str)
     let str = substitute(a:str, '[^0-9a-zA-Z]', '', 'g')
     let len = len(str)
     let p = 0
@@ -350,28 +350,31 @@ function! s:utf8_decode(str)
     endwhile
     return ret
 endfunction
-call ZFVimEscapeMapTransform('utf8_decode', 's:utf8_decode')
+call ZFVimEscapeMapTransform('utf8_decode', 'ZF_utf8_decode')
 
 " ================================================================================
 " binary string
 " convert between '6162' and 'ab' with specified encoding
 let s:binstr_prevenc = 'utf-8'
-function! s:binstr_encode(str)
-    if g:ZFVimEscapeRunningIndex == 0
-        let encoding = get(s:state, 'binstr_prevenc', '')
-        if empty(encoding)
-            call inputsave()
-            let encoding = input('[Python] input encoding: ', s:binstr_prevenc)
-            call inputrestore()
-        endif
-    else
-        let encoding = get(s:state, 'binstr_prevenc', '')
-    endif
+function! ZF_binstr_encode(str, ...)
+    let encoding = get(a:, 1, '')
     if empty(encoding)
-        return a:str
+        if g:ZFVimEscapeRunningIndex == 0
+            let encoding = get(s:state, 'binstr_prevenc', '')
+            if empty(encoding)
+                call inputsave()
+                let encoding = input('[Python] input encoding: ', s:binstr_prevenc)
+                call inputrestore()
+            endif
+        else
+            let encoding = get(s:state, 'binstr_prevenc', '')
+        endif
+        if empty(encoding)
+            return a:str
+        endif
+        let s:state['binstr_prevenc'] = encoding
+        let s:binstr_prevenc = encoding
     endif
-    let s:state['binstr_prevenc'] = encoding
-    let s:binstr_prevenc = encoding
     let str = a:str
     if !empty(s:python_EOF)
         try
@@ -398,24 +401,27 @@ python_EOF
     endif
     return result
 endfunction
-call ZFVimEscapeMapTransform('binstr_encode', 's:binstr_encode')
+call ZFVimEscapeMapTransform('binstr_encode', 'ZF_binstr_encode')
 
-function! s:binstr_decode(str)
-    if g:ZFVimEscapeRunningIndex == 0
-        let encoding = get(s:state, 'binstr_prevenc', '')
-        if empty(encoding)
-            call inputsave()
-            let encoding = input('[Python] input encoding: ', s:binstr_prevenc)
-            call inputrestore()
-        endif
-    else
-        let encoding = get(s:state, 'binstr_prevenc', '')
-    endif
+function! ZF_binstr_decode(str, ...)
+    let encoding = get(a:, 1, '')
     if empty(encoding)
-        return a:str
+        if g:ZFVimEscapeRunningIndex == 0
+            let encoding = get(s:state, 'binstr_prevenc', '')
+            if empty(encoding)
+                call inputsave()
+                let encoding = input('[Python] input encoding: ', s:binstr_prevenc)
+                call inputrestore()
+            endif
+        else
+            let encoding = get(s:state, 'binstr_prevenc', '')
+        endif
+        if empty(encoding)
+            return a:str
+        endif
+        let s:state['binstr_prevenc'] = encoding
+        let s:binstr_prevenc = encoding
     endif
-    let s:state['binstr_prevenc'] = encoding
-    let s:binstr_prevenc = encoding
     let str = a:str
     if !empty(s:python_EOF)
         try
@@ -440,30 +446,30 @@ python_EOF
     endif
     return result
 endfunction
-call ZFVimEscapeMapTransform('binstr_decode', 's:binstr_decode')
+call ZFVimEscapeMapTransform('binstr_decode', 'ZF_binstr_decode')
 
 " ================================================================================
 " url
-function! s:url_encode_char(str)
+function! ZF_url_encode_char(str)
     if !exists('g:ZFVimEscape_url_lowercase') || g:ZFVimEscape_url_lowercase != 1
         let x = 'X'
     else
         let x = 'x'
     endif
-    return s:utf8_encode_char(x, a:str, '%')
+    return ZF_utf8_encode_char(x, a:str, '%')
 endfunction
-function! s:url_encode(str)
+function! ZF_url_encode(str)
     let str = a:str
-    let str = substitute(str, '\([^A-Za-z0-9_.~-]\)', '\=s:url_encode_char(submatch(1))', 'g')
+    let str = substitute(str, '\([^A-Za-z0-9_.~-]\)', '\=ZF_url_encode_char(submatch(1))', 'g')
     return str
 endfunction
-call ZFVimEscapeMapTransform('url_encode', 's:url_encode')
+call ZFVimEscapeMapTransform('url_encode', 'ZF_url_encode')
 
 function! s:url_decode_string(str)
     let str = substitute(a:str, '%', '', 'g')
-    return s:utf8_decode(str)
+    return ZF_utf8_decode(str)
 endfunction
-function! s:url_decode(str)
+function! ZF_url_decode(str)
     let str = a:str
     let ret = ''
     while str != ''
@@ -480,17 +486,17 @@ function! s:url_decode(str)
     endwhile
     return ret
 endfunction
-call ZFVimEscapeMapTransform('url_decode', 's:url_decode')
+call ZFVimEscapeMapTransform('url_decode', 'ZF_url_decode')
 
 " ================================================================================
 " C string
-function! s:cstring_encode(str)
+function! ZF_cstring_encode(str)
     let map = {"\n": 'n', "\r": 'r', "\t": 't', "\b": 'b', "\f": '\f', '"': '"', '\': '\'}
     return substitute(a:str,"[\001-\033\\\\\"]",'\="\\".get(map,submatch(0),printf("%03o",char2nr(submatch(0))))','g')
 endfunction
-call ZFVimEscapeMapTransform('cstring_encode', 's:cstring_encode')
+call ZFVimEscapeMapTransform('cstring_encode', 'ZF_cstring_encode')
 
-function! s:cstring_decode(str)
+function! ZF_cstring_decode(str)
     let map = {'n': "\n", 'r': "\r", 't': "\t", 'b': "\b", 'f': "\f", 'e': "\e", 'a': "\001", 'v': "\013", "\n": ''}
     let str = a:str
     if str =~ '^\s*".\{-\}\\\@<!\%(\\\\\)*"\s*\n\=$'
@@ -498,7 +504,7 @@ function! s:cstring_decode(str)
     endif
     return substitute(str,'\\\(\o\{1,3\}\|x\x\{1,2\}\|u\x\{1,4\}\|.\)','\=get(map,submatch(1),submatch(1) =~? "^[0-9xu]" ? nr2char("0".substitute(submatch(1),"^[Uu]","x","")) : submatch(1))','g')
 endfunction
-call ZFVimEscapeMapTransform('cstring_decode', 's:cstring_decode')
+call ZFVimEscapeMapTransform('cstring_decode', 'ZF_cstring_decode')
 
 " ================================================================================
 " base64
@@ -512,7 +518,7 @@ if !exists('g:ZFVimEscape_base64_pad')
     let g:ZFVimEscape_base64_pad=g:ZFVimEscape_base64_pad_default
 endif
 
-function! s:base64_encode(str)
+function! ZF_base64_encode(str)
     if has('python3')
 
 python3 << base64_encode_python3
@@ -545,9 +551,9 @@ base64_encode_python2
     endif
     return result
 endfunction
-call ZFVimEscapeMapTransform('base64_encode', 's:base64_encode')
+call ZFVimEscapeMapTransform('base64_encode', 'ZF_base64_encode')
 
-function! s:base64_decode(str)
+function! ZF_base64_decode(str)
     let str = a:str
     while len(str) % 4 != 0
         let str .= '='
@@ -584,14 +590,14 @@ base64_decode_python2
     endif
     return result
 endfunction
-call ZFVimEscapeMapTransform('base64_decode', 's:base64_decode')
+call ZFVimEscapeMapTransform('base64_decode', 'ZF_base64_decode')
 
 " ================================================================================
 " timestamp, format: 2018-10-10 12:34:56
 if !exists('g:ZFVimEscape_timestamp_pattern')
     let g:ZFVimEscape_timestamp_pattern='%Y-%m-%d %H:%M:%S'
 endif
-function! s:timestamp_encode(str)
+function! ZF_timestamp_encode(str)
     let str = substitute(a:str, '^[ \t\r\n]*\(.\{-}\)[ \t\r\n]*$', '\1', 'g')
     let str = a:str
     if !empty(s:python_EOF)
@@ -615,9 +621,9 @@ python_EOF
     endif
     return result
 endfunction
-call ZFVimEscapeMapTransform('timestamp_encode', 's:timestamp_encode')
+call ZFVimEscapeMapTransform('timestamp_encode', 'ZF_timestamp_encode')
 
-function! s:timestamp_decode(str)
+function! ZF_timestamp_decode(str)
     let str = substitute(a:str, '^[ \t\r\n]*\(.\{-}\)[ \t\r\n]*$', '\1', 'g')
     if match(str, '^0[xX]') >= 0 || match(str, '[a-fA-F]') >= 0 || len(str) == 8
         let str = substitute(str, '^0[xX]', '', '')
@@ -625,11 +631,11 @@ function! s:timestamp_decode(str)
     endif
     return strftime(g:ZFVimEscape_timestamp_pattern, str)
 endfunction
-call ZFVimEscapeMapTransform('timestamp_decode', 's:timestamp_decode')
+call ZFVimEscapeMapTransform('timestamp_decode', 'ZF_timestamp_decode')
 
 " ================================================================================
 " crc32
-function! s:crc32_encode(str)
+function! ZF_crc32_encode(str)
     if has('python3')
 
 python3 << crc32_encode_python3
@@ -660,11 +666,11 @@ crc32_encode_python2
     endif
     return result
 endfunction
-call ZFVimEscapeMapTransform('crc32_encode', 's:crc32_encode')
+call ZFVimEscapeMapTransform('crc32_encode', 'ZF_crc32_encode')
 
 " ================================================================================
 " md5
-function! s:md5_encode(str)
+function! ZF_md5_encode(str)
     try
         let ret = MD5String(a:str)
         if !exists('g:ZFVimEscape_md5_lowercase') || !g:ZFVimEscape_md5_lowercase
@@ -676,7 +682,7 @@ function! s:md5_encode(str)
         return a:str
     endtry
 endfunction
-call ZFVimEscapeMapTransform('md5_encode', 's:md5_encode')
+call ZFVimEscapeMapTransform('md5_encode', 'ZF_md5_encode')
 
 " ================================================================================
 " qrcode
@@ -686,7 +692,7 @@ endif
 if !exists('g:ZFVimEscape_qrcode_fg')
     let g:ZFVimEscape_qrcode_fg='  '
 endif
-function! s:qrcode_encode(str)
+function! ZF_qrcode_encode(str)
     if !empty(s:python_EOF)
         try
 
@@ -716,7 +722,7 @@ python_EOF
     endif
     return result
 endfunction
-call ZFVimEscapeMapTransform('qrcode_encode', 's:qrcode_encode')
+call ZFVimEscapeMapTransform('qrcode_encode', 'ZF_qrcode_encode')
 
 " ================================================================================
 " util function, usage
